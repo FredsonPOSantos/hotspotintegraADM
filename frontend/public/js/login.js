@@ -54,11 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 displayMessage(data.message || 'Login bem-sucedido! A ligar à rede...', 'success');
                 
-                // ---- CORREÇÃO CRÍTICA ----
+                // ---- LÓGICA ATUALIZADA E CORRIGIDA ----
                 // Após o sucesso, submete um formulário "fantasma" para o URL de login do MikroTik
                 // para ativar a sessão que o nosso backend acabou de criar.
                 if (linkLoginOnly) {
                     setTimeout(() => {
+                        // 1. Ativa a sessão no MikroTik
                         const hotspotLoginForm = document.createElement('form');
                         hotspotLoginForm.method = 'post';
                         hotspotLoginForm.action = linkLoginOnly; // Usa o link capturado da URL
@@ -68,6 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                         document.body.appendChild(hotspotLoginForm);
                         hotspotLoginForm.submit();
+
+                        // 2. Imediatamente a seguir, redireciona para a nossa página de status
+                        // Pega todos os parâmetros da URL atual
+                        const params = new URLSearchParams(window.location.search);
+                        // Adiciona o nome do utilizador retornado pela API aos parâmetros
+                        params.append('name', data.nomeCompleto);
+                        // Redireciona
+                        window.location.href = `status.html?${params.toString()}`;
+
                     }, 1500);
                 } else {
                      console.error("DEBUG: 'link-login-only' não encontrado na URL. Não é possível ativar a sessão.");
