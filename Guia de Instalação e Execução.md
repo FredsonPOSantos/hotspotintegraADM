@@ -102,7 +102,7 @@ driver = "rlm_sql_${dialect}"
 
 Configure as informações de ligação. Como o WSL está agora na mesma rede, o server é o IP do seu Windows:
 
-server = "192.168.10.199"
+server = "192.168.10.199" ou "localhost"
 port = 5432
 login = "radius"
 password = "sua_senha_forte_aqui"
