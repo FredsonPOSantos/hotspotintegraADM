@@ -1,37 +1,22 @@
-// Carrega as variáveis de ambiente do arquivo .env
-require('dotenv').config();
-
-// Importa os frameworks e módulos necessários
 const express = require('express');
-const cors = require('cors'); // Importa o pacote CORS
-const connectDB = require('./src/database/connection');
+const cors = require('cors');
+require('dotenv').config(); // Carrega as variáveis de ambiente
 const authRoutes = require('./src/routes/authRoutes');
 
-// Executa a conexão com o MongoDB
-connectDB();
+// Inicializa a ligação à base de dados PostgreSQL
+const db = require('./src/database/connection');
 
-// Cria uma instância do aplicativo Express
 const app = express();
 
-// --- CONFIGURAÇÃO DO CORS ---
-// Middleware para permitir requisições de outras origens (do nosso frontend)
-app.use(cors());
+// Middlewares essenciais
+app.use(cors()); // Permite que o nosso frontend comunique com o backend
+app.use(express.json()); // Permite que o servidor entenda JSON
 
-// Middleware para permitir que o Express entenda requisições com corpo em JSON
-app.use(express.json());
-
-// Define a porta em que o servidor irá rodar
-const PORT = process.env.PORT || 3000;
-
-// Rota principal para teste
-app.get('/', (req, res) => {
-  res.send('API Rota_Hotspot está no ar!');
-});
-
-// Usa as rotas de autenticação para qualquer URL que comece com /api/auth
+// Define a rota principal da nossa API (agora apenas com o registo)
 app.use('/api/auth', authRoutes);
 
-// Inicia o servidor e o faz "escutar" por requisições na porta definida
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor a correr em http://localhost:${PORT}`);
 });

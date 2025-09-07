@@ -1,104 +1,130 @@
-Guia de Instalação e Execução - Rota Hotspot
-Este guia detalha todos os passos necessários para configurar e executar o sistema Rota Hotspot num novo ambiente, seja para desenvolvimento ou produção local.
+Guia Definitivo de Implementação: RotaHotspot
+Este documento serve como um guia completo para a instalação, configuração e implementação do sistema RotaHotspot, utilizando uma arquitetura moderna e robusta.
 
-1. Pré-requisitos
-Antes de começar, garanta que tem os seguintes softwares instalados no seu computador/servidor:
+Arquitetura Final:
 
-Node.js: (Versão 16 ou superior)
+Portal de Registo: Aplicação Node.js com frontend (HTML/CSS/JS).
 
-NPM: (Geralmente vem instalado com o Node.js)
+Base de Dados: Servidor PostgreSQL a correr nativamente no Windows.
 
-Git: Para clonar o repositório.
+Servidor de Autenticação: FreeRADIUS 3.0 a correr no Ubuntu (via WSL 2) no Windows.
 
-Um router MikroTik: Acessível na rede local.
+Controlador de Rede: Router MikroTik a funcionar como portal cativo (Hotspot).
 
-Conta no MongoDB Atlas: Para a base de dados na nuvem.
+Fase 1: Configurar o Ambiente Windows e WSL 2
+Nesta fase, preparamos o Windows para correr o nosso ambiente Linux de forma otimizada.
 
-2. Configuração do Backend (Servidor)
-O backend é o cérebro do sistema. Siga estes passos para o configurar:
+Pré-requisitos:
 
-Clonar o Repositório:
-Abra um terminal e clone o projeto a partir do GitHub.
+Windows 11 (versão 22H2 ou superior) para garantir a compatibilidade com o modo de rede espelhado do WSL.
 
-git clone [URL_DO_SEU_REPOSITORIO_GIT]
-cd Rota_Hotspot/backend
+Node.js (LTS) instalado no Windows.
 
-Instalar as Dependências:
-Dentro da pasta backend, execute o comando para instalar todos os pacotes necessários.
+Instalar e Configurar o WSL 2:
 
-npm install
+Abra o PowerShell como Administrador e execute: wsl --install
 
-Criar o Ficheiro de Ambiente (.env):
-Crie um ficheiro chamado .env na raiz da pasta backend e copie o conteúdo abaixo para dentro dele. Substitua os valores de exemplo pelos seus dados reais.
+Reinicie o computador.
 
-# Configurações do MongoDB Atlas
-# Substitua pela sua string de ligação
-MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/suaBaseDeDados?retryWrites=true&w=majority
+Após reiniciar, configure o seu utilizador e senha para o Ubuntu.
 
-# Chave secreta para gerar os tokens de autenticação
-JWT_SECRET=seuSegredoSuperSecreto123
+Garanta que a versão 2 é o padrão com: wsl --set-default-version 2
 
-# Credenciais de acesso à API do MikroTik
-MIKROTIK_HOST=192.168.10.1
-MIKROTIK_USER=admin
-MIKROTIK_PASSWORD=suaSenhaDoMikroTik
+Ativar o Modo de Rede Espelhado (Mirrored Mode):
 
-Iniciar o Servidor:
-Com tudo configurado, inicie o servidor.
+No Explorador de Ficheiros, vá para a sua pasta de utilizador (%userprofile%).
 
-node server.js
+Crie um ficheiro de texto chamado .wslconfig e adicione o seguinte conteúdo:
 
-Se tudo estiver correto, deverá ver as mensagens "Servidor rodando em http://localhost:3000" e "Conexão com o MongoDB estabelecida com sucesso!".
+[wsl2]
+networkingMode=mirrored
 
-3. Configuração do MikroTik
-Esta é a parte mais crítica, que liga o hardware ao nosso software.
+Reinicie o WSL executando no PowerShell: wsl --shutdown
 
-Criar o Perfil de Utilizador:
-Crie o perfil que irá controlar o tempo de sessão dos utilizadores.
+Fase 2: Instalar e Preparar a Base de Dados (PostgreSQL)
+Instale o PostgreSQL no Windows. Lembre-se de guardar a senha do superutilizador postgres.
 
-Via WinBox: Vá para IP -> Hotspot -> User Profiles. Crie um novo perfil com:
+Prepare a Base de Dados radius usando o SQL Shell (psql):
 
-Name: perfil-30-minutos
+Ligue-se ao servidor (aceitando os padrões e inserindo a sua senha de postgres).
 
-Session Timeout: 00:30:00
+Execute os seguintes comandos:
 
-Via Terminal:
-/ip hotspot user profile add name="perfil-30-minutos" session-timeout=30m
+CREATE DATABASE radius;
+\c radius
+CREATE USER radius WITH PASSWORD 'sua_senha_forte_aqui';
 
-Configurar o Walled Garden:
-Permita que os utilizadores não autenticados acedam ao seu servidor.
+-- Copie o schema.sql do WSL para o seu Ambiente de Trabalho antes de executar o próximo comando
+-- Comando no Ubuntu: sudo cp /etc/freeradius/3.0/mods-config/sql/main/postgresql/schema.sql /mnt/c/Users/SeuUsuario/Desktop/
+\i 'C:/Users/SeuUsuario/Desktop/schema.sql'
 
-Via WinBox: Vá para IP -> Hotspot -> Walled Garden IP. Crie uma nova regra com:
+CREATE TABLE userdetails (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    nome_completo VARCHAR(255),
+    telefone VARCHAR(20),
+    mac_address VARCHAR(17),
+    router_name VARCHAR(32),
+    data_cadastro TIMESTAMPTZ DEFAULT NOW(),
+    ultimo_login TIMESTAMPTZ
+);
 
-Action: accept
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO radius;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO radius;
 
-Dst. Address: 192.168.10.199 (O IP do computador que está a correr o backend)
+Configure o pg_hba.conf para permitir ligações da sua rede local.
 
-Via Terminal:
-/ip hotspot walled-garden ip add action=accept dst-address=192.168.10.199
+Abra o ficheiro C:\Program Files\PostgreSQL\...\data\pg_hba.conf como Administrador.
 
-Carregar o Ficheiro de Redirecionamento:
+Adicione a seguinte linha no final do ficheiro para permitir que o FreeRADIUS (e o seu Node.js) se liguem:
 
-Aceda ao ficheiro login.html que criámos (o que apenas redireciona).
+# Permite ligações da rede local (IP do seu servidor/WSL)
+host    all             all             192.168.10.0/24         scram-sha-256
 
-Via WinBox: Vá para Files. Apague o login.html existente dentro da pasta hotspot e carregue o nosso ficheiro de redirecionamento para o mesmo local.
+Reinicie o serviço do PostgreSQL através de services.msc.
 
-4. Configuração do Frontend
-Localização dos Ficheiros: Todos os ficheiros do frontend (index.html, register.html, as pastas css/ e js/) devem estar dentro de frontend/public/.
+Fase 3: Instalar e Configurar o FreeRADIUS (Ubuntu/WSL)
+Instale o FreeRADIUS e o módulo PostgreSQL no seu terminal Ubuntu:
 
-Iniciar o Servidor Frontend:
-Para testar localmente, abra um novo terminal, navegue até à pasta frontend e execute:
+sudo apt update && sudo apt upgrade -y
+sudo apt install freeradius freeradius-postgresql -y
 
-# (Se ainda não o tiver instalado: npm install -g http-server)
-http-server -p 8081
+Configure o Módulo SQL (mods-available/sql):
 
-Este servidor irá servir os ficheiros que estão na subpasta public.
+Abra o ficheiro: sudo nano /etc/freeradius/3.0/mods-available/sql
 
-5. Executando o Sistema Completo
-Garanta que o servidor backend está a correr.
+Altere o dialect para "postgresql".
 
-Garanta que o servidor frontend (se estiver a testar) está a correr.
+Ative o driver correto:
 
-Ligue um dispositivo (ex: telemóvel) à rede Wi-Fi do MikroTik.
+#driver = "rlm_sql_null"
+driver = "rlm_sql_${dialect}"
 
-O dispositivo deverá ser automaticamente redirecionado para o seu servidor frontend, e o fluxo de registo/login deverá funcionar como esperado.
+Configure as informações de ligação. Como o WSL está agora na mesma rede, o server é o IP do seu Windows:
+
+server = "192.168.10.199"
+port = 5432
+login = "radius"
+password = "sua_senha_forte_aqui"
+radius_db = "radius"
+
+Ative o Módulo SQL:
+
+sudo ln -s /etc/freeradius/3.0/mods-available/sql /etc/freeradius/3.0/mods-enabled/
+
+Configure o sites-available/default:
+
+Abra o ficheiro: sudo nano /etc/freeradius/3.0/sites-available/default
+
+Em cada uma das secções (authorize, accounting, session, post-auth), encontre a palavra sql e garanta que ela não tem um # ou - antes.
+
+Configure o clients.conf:
+
+Abra o ficheiro: sudo nano /etc/freeradius/3.0/clients.conf
+
+Adicione o seu MikroTik no final do ficheiro:
+
+client mikrotik {
+    ipaddr = 192.168.10.1
+    secret = Rota1010
+}

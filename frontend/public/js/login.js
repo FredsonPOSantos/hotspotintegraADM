@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA PARA MANTER OS PARÂMETROS NA NAVEGAÇÃO ---
     const registerLink = document.getElementById('registerLink');
     if (registerLink) {
+        // Adiciona um "ouvinte" ao clique no link para construir o URL de registo dinamicamente
         registerLink.addEventListener('click', (event) => {
             event.preventDefault();
             const searchParams = window.location.search;
@@ -15,88 +16,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageDiv = document.getElementById('message');
 
     // Adiciona um "ouvinte" para o evento de submissão do formulário
-    loginForm.addEventListener('submit', async (event) => {
+    loginForm.addEventListener('submit', (event) => {
+        // Previne o comportamento padrão do formulário
         event.preventDefault();
 
-        // Limpa mensagens anteriores e desativa o botão
-        messageDiv.textContent = '';
-        messageDiv.className = 'message';
+        // Desativa o botão para evitar cliques duplos
         const submitButton = loginForm.querySelector('button');
         submitButton.disabled = true;
-        submitButton.textContent = 'Aguarde...';
+        submitButton.textContent = 'A autenticar...';
 
-        // Captura os valores dos campos do formulário
+        // Captura os valores que o utilizador digitou
         const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
+        const password = document.getElementById('senha').value;
         
-        // Captura o endereço MAC e o link de login do MikroTik da URL
-        const mac = getUrlParameter('mac');
+        // Captura o URL de login especial que o MikroTik nos forneceu
         const linkLoginOnly = getUrlParameter('link-login-only');
 
-        if (!mac) {
-            displayMessage('Endereço MAC não encontrado. Acesso inválido.', 'error');
+        // Validação crucial: se não tivermos este URL, a autenticação falhará
+        if (!linkLoginOnly) {
+            displayMessage('URL de autenticação do hotspot não encontrado. Acesso inválido.', 'error');
             submitButton.disabled = false;
             submitButton.textContent = 'Entrar';
             return;
         }
 
-        const loginData = { email, senha, mac };
+        // Cria um novo formulário "fantasma" na memória
+        const hotspotLoginForm = document.createElement('form');
+        hotspotLoginForm.method = 'post';
+        hotspotLoginForm.action = linkLoginOnly; // A ação do formulário é o URL do MikroTik
+        
+        // Adiciona o e-mail (como 'username') e a senha como campos escondidos
+        hotspotLoginForm.innerHTML = `
+            <input type="hidden" name="username" value="${email}">
+            <input type="hidden" name="password" value="${password}">
+        `;
 
-        try {
-            const response = await fetch('http://192.168.10.199:3000/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(loginData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                displayMessage(data.message || 'Login bem-sucedido! A ligar à rede...', 'success');
-                
-                // ---- LÓGICA ATUALIZADA E CORRIGIDA ----
-                // Após o sucesso, submete um formulário "fantasma" para o URL de login do MikroTik
-                // para ativar a sessão que o nosso backend acabou de criar.
-                if (linkLoginOnly) {
-                    setTimeout(() => {
-                        // 1. Ativa a sessão no MikroTik
-                        const hotspotLoginForm = document.createElement('form');
-                        hotspotLoginForm.method = 'post';
-                        hotspotLoginForm.action = linkLoginOnly; // Usa o link capturado da URL
-                        hotspotLoginForm.innerHTML = `
-                            <input type="hidden" name="username" value="${mac}">
-                            <input type="hidden" name="password" value="${mac}">
-                        `;
-                        document.body.appendChild(hotspotLoginForm);
-                        hotspotLoginForm.submit();
-
-                        // 2. Imediatamente a seguir, redireciona para a nossa página de status
-                        // Pega todos os parâmetros da URL atual
-                        const params = new URLSearchParams(window.location.search);
-                        // Adiciona o nome do utilizador retornado pela API aos parâmetros
-                        params.append('name', data.nomeCompleto);
-                        // Redireciona
-                        window.location.href = `status.html?${params.toString()}`;
-
-                    }, 1500);
-                } else {
-                     console.error("DEBUG: 'link-login-only' não encontrado na URL. Não é possível ativar a sessão.");
-                     displayMessage('Autorizado, mas falha ao ativar a sessão. Tente novamente.', 'error');
-                }
-
-            } else {
-                throw new Error(data.message || 'Ocorreu um erro no login.');
-            }
-        } catch (error) {
-            displayMessage(error.message, 'error');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Entrar';
-        }
+        // Adiciona o formulário à página e submete-o.
+        // O navegador irá agora enviar os dados diretamente para o MikroTik.
+        document.body.appendChild(hotspotLoginForm);
+        hotspotLoginForm.submit();
     });
 
+    /**
+     * @desc    Exibe uma mensagem de feedback para o usuário.
+     * @param   {string} text - O texto da mensagem.
+     * @param   {string} type - O tipo da mensagem ('success' ou 'error').
+     */
     function displayMessage(text, type) {
         messageDiv.textContent = text;
         messageDiv.className = `message ${type}`;
+    }
+
+    // Verifica se a página carregou com uma mensagem de erro do MikroTik
+    const errorMessage = getUrlParameter('error');
+    if (errorMessage) {
+        displayMessage('Login falhou: ' + errorMessage, 'error');
     }
 });
 

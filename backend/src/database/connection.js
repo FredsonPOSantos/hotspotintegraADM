@@ -1,25 +1,23 @@
-// backend/src/database/connection.js
+const { Pool } = require('pg');
+require('dotenv').config();
 
-// Importa o mongoose para a conexão com o MongoDB
-const mongoose = require('mongoose');
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
 
-// Obtém a URI de conexão do MongoDB a partir das variáveis de ambiente
-// A variável de ambiente é carregada no server.js, garantindo que esteja disponível aqui
-const mongoURI = process.env.MONGO_URI;
+pool.on('connect', () => {
+  console.log('Ligação com o PostgreSQL estabelecida com sucesso!');
+});
 
-// Função assíncrona para estabelecer a conexão com o banco de dados
-const connectDB = async () => {
-    try {
-        // Tenta se conectar ao MongoDB usando a URI
-        await mongoose.connect(mongoURI);
-        console.log('Conexão com o MongoDB estabelecida com sucesso!');
-    } catch (error) {
-        // Se a conexão falhar, exibe uma mensagem de erro no console
-        console.error('Falha ao conectar com o MongoDB:', error);
-        // Encerra o processo do servidor com um código de erro
-        process.exit(1);
-    }
+pool.on('error', (err) => {
+    console.error('Erro inesperado no cliente da base de dados', err);
+    process.exit(-1);
+});
+
+module.exports = {
+  query: (text, params) => pool.query(text, params),
 };
-
-// Exporta a função para que ela possa ser usada em outros arquivos, como o server.js
-module.exports = connectDB;
