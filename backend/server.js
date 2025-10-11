@@ -15,7 +15,7 @@ app.use(express.json()); // Permite que o servidor entenda JSON
 // Define a rota principal da nossa API (agora apenas com o registo)
 app.use('/api/auth', authRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
     console.log(`Servidor a correr em http://localhost:${PORT}`);

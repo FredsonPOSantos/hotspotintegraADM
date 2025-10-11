@@ -12,16 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- NOVO: Container para o banner pré-login -->
-    <div id="prelogin-banner-container"></div>
-
     <div class="form-container">
         <div class="form-header">
-            <!-- NOVO: Container para o logótipo dinâmico -->
-            <div id="logo-container">
-                <!-- A tag <img> do logo será inserida aqui via JavaScript -->
-            </div>
-            <h1>Bem-vindo A Uma Nova Experiência!</h1>
+            <h1>Bem-vindo A Uma Nova Experiençia!</h1>
             <p>Faça login para acessar à rede.</p>
         </div>
 
@@ -39,15 +32,15 @@
         </form>
 
         <div class="form-footer">
-            <!-- O href será definido dinamicamente via JavaScript -->
+            <!-- O href foi alterado para ser definido dinamicamente via JavaScript -->
             <p>Ainda não tem uma conta? <a id="registerLink" href="#">Cadastre-se Aqui</a></p>
         </div>
         
         <!-- Elemento para exibir mensagens de erro ou sucesso -->
-        <div id="message"></div>
+        <div id="message" class="message"></div>
     </div>
 
-    <!-- Scripts JavaScript no final do body para melhor performance -->
+    <!-- Links para os arquivos JavaScript -->
     <script src="js/utils.js"></script>
     <script src="js/login.js"></script>
 </body>
