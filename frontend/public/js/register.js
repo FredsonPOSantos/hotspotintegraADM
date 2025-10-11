@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Envia a requisição para a API de registro com o IP do servidor
-            const response = await fetch('http://10.0.0.46:3000/api/auth/register', {
+            const response = await fetch('http://10.0.0.56:3000/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
