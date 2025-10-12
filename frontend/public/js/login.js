@@ -46,11 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`[DIAGNÓSTICO] Logótipo aplicado: ${data.logo_url}`);
         }
 
+        // --- ALTERAÇÃO CRUCIAL ---
+        // Aplica a cor diretamente ao botão para garantir que se sobrepõe ao CSS
         if (data.primary_color) {
             const mainButton = document.querySelector('.btn');
             if (mainButton) {
                 console.log('[DIAGNÓSTICO] Elemento .btn encontrado.');
-                // Força a remoção do gradiente e aplica a nova cor
+                // Força a remoção de qualquer fundo existente (como gradientes) e aplica a nova cor
                 mainButton.style.background = data.primary_color;
                 console.log(`[DIAGNÓSTICO] Cor primária aplicada ao botão: ${data.primary_color}`);
             } else {
