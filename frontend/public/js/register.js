@@ -1,7 +1,7 @@
 // Aguarda o carregamento completo do DOM
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- LÓGICA DE CARREGAMENTO DINÂMICO DO TEMA ---
+    // --- NOVA LÓGICA: CARREGAMENTO DINÂMICO DO TEMA ---
     const API_BASE_URL = 'http://10.0.0.46:3000';
 
     const loadPortalTheme = async () => {
@@ -75,7 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = passwordInput.value;
         let isLengthValid = password.length >= 6;
 
+        // Atualiza a classe para mudar a cor via CSS (do seu ficheiro original)
         lengthCheck.className = isLengthValid ? 'valid' : 'invalid';
+        // A cor real é controlada pelo seu ficheiro style.css
+        lengthCheck.style.color = isLengthValid ? 'green' : 'red';
         submitButton.disabled = !isLengthValid;
     });
     
@@ -99,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Usa a API_BASE_URL para a chamada de registo
-            const response = await fetch(`${API_BASE_URL}/api/register`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
