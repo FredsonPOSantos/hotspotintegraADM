@@ -7,50 +7,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadPortalTheme = async () => {
         const routerName = getUrlParameter('routerName');
+        console.log(`[DIAGNÓSTICO] A iniciar carregamento do tema para o router: ${routerName}`);
+
         if (!routerName) {
-            console.error('Parâmetro routerName não encontrado no URL.');
+            console.error('[DIAGNÓSTICO] Parâmetro routerName não encontrado no URL. A parar.');
             return;
         }
 
         try {
+            console.log(`[DIAGNÓSTICO] A contactar a API: ${API_BASE_URL}/api/portal?routerName=${routerName}`);
             const response = await fetch(`${API_BASE_URL}/api/portal?routerName=${routerName}`);
+            
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Não foi possível carregar os dados de personalização.');
             }
             const templateData = await response.json();
+            console.log('[DIAGNÓSTICO] Dados recebidos da API:', templateData);
             applyTheme(templateData);
+
         } catch (error) {
-            console.error('Erro ao buscar o tema do portal:', error);
+            console.error('[DIAGNÓSTICO] Erro ao buscar o tema do portal:', error);
         }
     };
 
     const applyTheme = (data) => {
+        console.log('[DIAGNÓSTICO] A aplicar o tema na página...');
         if (data.login_background_url) {
             document.body.style.backgroundImage = `url('${data.login_background_url}')`;
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
+            console.log(`[DIAGNÓSTICO] Imagem de fundo aplicada: ${data.login_background_url}`);
         }
         
         const logoContainer = document.getElementById('logo-container');
         if (data.logo_url && logoContainer) {
             logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto;">`;
+            console.log(`[DIAGNÓSTICO] Logótipo aplicado: ${data.logo_url}`);
         }
 
-        // --- SOLUÇÃO DEFINITIVA PARA APLICAR A COR ---
         if (data.primary_color) {
             const mainButton = document.querySelector('.btn');
             if (mainButton) {
-                // Usa setProperty com '!important' para garantir que o estilo seja aplicado sobre o CSS
-                // Primeiro removemos o gradiente e depois aplicamos a cor
-                mainButton.style.setProperty('background', 'none', 'important');
-                mainButton.style.setProperty('background-color', data.primary_color, 'important');
+                console.log('[DIAGNÓSTICO] Elemento .btn encontrado.');
+                // Força a remoção do gradiente e aplica a nova cor
+                mainButton.style.background = data.primary_color;
+                console.log(`[DIAGNÓSTICO] Cor primária aplicada ao botão: ${data.primary_color}`);
+            } else {
+                console.error('[DIAGNÓSTICO] Elemento .btn não foi encontrado na página.');
             }
         }
         
         if (data.font_size) {
              document.documentElement.style.fontSize = data.font_size;
+             console.log(`[DIAGNÓSTICO] Tamanho da fonte aplicado: ${data.font_size}`);
         }
+        console.log('[DIAGNÓSTICO] Aplicação do tema concluída.');
     };
 
     loadPortalTheme();
