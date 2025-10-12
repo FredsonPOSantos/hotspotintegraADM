@@ -1,10 +1,10 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- LÓGICA DE CARREGAMENTO DINÂMICO DO TEMA DO PORTAL ---
+    // --- NOVA LÓGICA: CARREGAMENTO DINÂMICO DO TEMA DO PORTAL ---
 
     // Define o endereço base da sua API de backend
-    const API_BASE_URL = 'http://10.0.0.46:3000';
+    const API_BASE_URL = 'http://10.0.0.46:3000'; // <-- ALTERAÇÃO CRUCIAL
 
     // Função assíncrona para buscar e aplicar o tema do portal
     const loadPortalTheme = async () => {
@@ -16,12 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Chama a nova API usando o endereço completo
             const response = await fetch(`${API_BASE_URL}/api/portal?routerName=${routerName}`);
             
             if (!response.ok) {
-                // Tenta ler a mensagem de erro do backend
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Não foi possível carregar os dados de personalização do portal.');
+                throw new Error('Não foi possível carregar os dados de personalização do portal.');
             }
 
             const templateData = await response.json();
@@ -34,38 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para aplicar os dados do template à página HTML
     const applyTheme = (data) => {
-        // Aplica a imagem de fundo ao corpo da página
         if (data.login_background_url) {
             document.body.style.backgroundImage = `url('${data.login_background_url}')`;
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
         }
-        
-        // Insere o logótipo no seu container
         const logoContainer = document.getElementById('logo-container');
         if (data.logo_url && logoContainer) {
-            logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto; margin-bottom: 1rem;">`;
+            logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto;">`;
         }
-
-        // --- ALTERAÇÃO PRINCIPAL: APLICAÇÃO DIRETA DOS ESTILOS ---
-        // Em vez de usar variáveis CSS, aplicamos a cor diretamente nos elementos
         if (data.primary_color) {
-            // Encontra o botão principal do formulário
-            const mainButton = document.querySelector('.btn');
-            if (mainButton) {
-                // Aplica a cor de fundo e a cor da borda
-                mainButton.style.backgroundColor = data.primary_color;
-                mainButton.style.borderColor = data.primary_color;
-            }
+            document.documentElement.style.setProperty('--primary-color', data.primary_color);
         }
-        
-        // Define o tamanho da fonte (se especificado)
         if (data.font_size) {
-             document.documentElement.style.fontSize = data.font_size;
+             document.documentElement.style.setProperty('--base-font-size', data.font_size);
         }
     };
 
-    // Inicia o carregamento do tema assim que a página estiver pronta
     loadPortalTheme();
 
 
