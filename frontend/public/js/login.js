@@ -1,92 +1,118 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- LÓGICA DE CARREGAMENTO DINÂMICO DO TEMA (ATUALIZADA) ---
-
     const API_BASE_URL = 'http://10.0.0.46:3000';
 
     const loadPortalTheme = async () => {
         const routerName = getUrlParameter('routerName');
-        console.log(`[DIAGNÓSTICO] A iniciar carregamento do tema para o router: ${routerName}`);
-
         if (!routerName) {
-            console.error('[DIAGNÓSTICO] Parâmetro routerName não encontrado no URL. A parar.');
+            console.error('Parâmetro routerName não encontrado.');
             return;
         }
 
         try {
-            console.log(`[DIAGNÓSTICO] A contactar a API: ${API_BASE_URL}/api/portal?routerName=${routerName}`);
             const response = await fetch(`${API_BASE_URL}/api/portal?routerName=${routerName}`);
-            
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Não foi possível carregar os dados de personalização.');
+                throw new Error('Não foi possível carregar os dados de personalização.');
             }
             const templateData = await response.json();
-            console.log('[DIAGNÓSTICO] Dados recebidos da API:', templateData);
             applyTheme(templateData);
-
         } catch (error) {
-            console.error('[DIAGNÓSTICO] Erro ao buscar o tema do portal:', error);
+            console.error('Erro ao buscar o tema do portal:', error);
         }
     };
 
-    /**
-     * @desc    Escurece uma cor hexadecimal.
-     * @param   {string} hex - A cor em formato hexadecimal (ex: '#RRGGBB').
-     * @param   {number} percent - A percentagem para escurecer (ex: 20 para 20%).
-     * @returns {string} - A nova cor hexadecimal.
-     */
     const darkenHexColor = (hex, percent) => {
         if (!hex) return '#000000';
-        let r = parseInt(hex.substring(1, 3), 16);
-        let g = parseInt(hex.substring(3, 5), 16);
-        let b = parseInt(hex.substring(5, 7), 16);
+        let r = parseInt(hex.substring(1, 3), 16),
+            g = parseInt(hex.substring(3, 5), 16),
+            b = parseInt(hex.substring(5, 7), 16);
         r = parseInt(r * (100 - percent) / 100);
         g = parseInt(g * (100 - percent) / 100);
         b = parseInt(b * (100 - percent) / 100);
-        r = (r < 255) ? r : 255;  
-        g = (g < 255) ? g : 255;  
-        b = (b < 255) ? b : 255;  
-        const rr = ((r.toString(16).length === 1) ? '0' + r.toString(16) : r.toString(16));
-        const gg = ((g.toString(16).length === 1) ? '0' + g.toString(16) : g.toString(16));
-        const bb = ((b.toString(16).length === 1) ? '0' + b.toString(16) : b.toString(16));
-        return `#${rr}${gg}${bb}`;
+        const toHex = (c) => ('0' + c.toString(16)).slice(-2);
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     };
 
     const applyTheme = (data) => {
-        console.log('[DIAGNÓSTICO] A aplicar o tema na página...');
+        // Aplica estilos do template (fundo, logo, cores, fontes)
         if (data.login_background_url) {
             document.body.style.backgroundImage = `url('${data.login_background_url}')`;
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
-            console.log(`[DIAGNÓSTICO] Imagem de fundo aplicada: ${data.login_background_url}`);
         }
-        
         const logoContainer = document.getElementById('logo-container');
         if (data.logo_url && logoContainer) {
-            logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto;">`;
-            console.log(`[DIAGNÓSTICO] Logótipo aplicado: ${data.logo_url}`);
+            logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal">`;
         }
-
         if (data.primary_color) {
             const darkerColor = darkenHexColor(data.primary_color, 20);
             document.documentElement.style.setProperty('--gradient-start', data.primary_color);
             document.documentElement.style.setProperty('--gradient-end', darkerColor);
-            console.log(`[DIAGNÓSTICO] Cores do gradiente aplicadas: ${data.primary_color} e ${darkerColor}`);
         }
-        
-        // --- NOVA LÓGICA PARA A COR E TAMANHO DA FONTE ---
         if (data.font_color) {
             document.documentElement.style.setProperty('--font-color', data.font_color);
-            console.log(`[DIAGNÓSTICO] Cor da fonte aplicada: ${data.font_color}`);
         }
-
         if (data.font_size) {
-             document.documentElement.style.setProperty('--base-font-size', data.font_size);
-             console.log(`[DIAGNÓSTICO] Tamanho da fonte aplicado: ${data.font_size}`);
+            document.documentElement.style.setProperty('--base-font-size', data.font_size);
         }
-        console.log('[DIAGNÓSTICO] Aplicação do tema concluída.');
+        
+        // --- NOVA LÓGICA PARA EXIBIR O BANNER ---
+        if (data.banner_image_url) {
+            showPreloginBanner(
+                data.banner_image_url,
+                data.banner_target_url,
+                data.banner_display_time
+            );
+        }
+    };
+    
+    // --- NOVA FUNÇÃO PARA GERIR O BANNER ---
+    const showPreloginBanner = (imageUrl, targetUrl, displayTime) => {
+        const bannerContainer = document.getElementById('prelogin-banner-container');
+        if (!bannerContainer) return;
+
+        const timeInSeconds = parseInt(displayTime, 10) || 5; // Padrão de 5 segundos
+        let countdown = timeInSeconds;
+
+        // Cria a estrutura HTML do banner
+        bannerContainer.innerHTML = `
+            <div class="banner-overlay">
+                <div class="banner-modal">
+                    <button class="banner-close-btn">&times;</button>
+                    <a href="${targetUrl || '#'}" target="_blank">
+                        <img src="${imageUrl}" alt="Banner Promocional">
+                    </a>
+                    <div class="banner-countdown">A fechar em ${countdown}s...</div>
+                </div>
+            </div>
+        `;
+
+        const overlay = bannerContainer.querySelector('.banner-overlay');
+        const closeBtn = bannerContainer.querySelector('.banner-close-btn');
+        const countdownDiv = bannerContainer.querySelector('.banner-countdown');
+
+        // Função para fechar o banner
+        const closeBanner = () => {
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+            clearInterval(countdownInterval);
+        };
+
+        // Evento de clique no botão de fechar
+        closeBtn.addEventListener('click', closeBanner);
+
+        // Contagem decrescente
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdownDiv) {
+                countdownDiv.textContent = `A fechar em ${countdown}s...`;
+            }
+            if (countdown <= 0) {
+                closeBanner();
+            }
+        }, 1000);
     };
 
     loadPortalTheme();
@@ -95,10 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA ORIGINAL DO SEU FICHEIRO (sem alterações) ---
     const registerLink = document.getElementById('registerLink');
     if (registerLink) {
-        registerLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            const searchParams = window.location.search;
-            window.location.href = 'register.html' + searchParams;
+        registerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'register.html' + window.location.search;
         });
     }
 
@@ -134,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.textContent = text;
         messageDiv.className = `message ${type}`;
     }
+
     const errorMessage = getUrlParameter('error');
     if (errorMessage) {
         displayMessage('Login falhou: ' + errorMessage, 'error');

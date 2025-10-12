@@ -4,10 +4,8 @@
 const db = require('../database/connection');
 const bcrypt = require('bcryptjs');
 
-// --- NOVA FUNÇÃO: O Motor de Decisão ---
-
 /**
- * @desc    Determina qual template de portal deve ser exibido e retorna os seus detalhes.
+ * @desc    Determina qual template de portal deve ser exibido e retorna os seus detalhes, incluindo o banner.
  * @route   GET /api/portal?routerName=RT-000001
  * @access  Public
  */
@@ -62,15 +60,25 @@ const getPortalPage = async (req, res) => {
 
     const templateId = motorResult.rows[0].template_id;
 
-    // 2. Com o ID, buscar todos os detalhes do template
-    const templateDetailsQuery = 'SELECT * FROM templates WHERE id = $1';
+    // --- ALTERAÇÃO CRUCIAL ---
+    // 2. Com o ID, buscar todos os detalhes do template E do banner associado (se houver)
+    const templateDetailsQuery = `
+      SELECT 
+        t.*, 
+        b.image_url as banner_image_url, 
+        b.target_url as banner_target_url, 
+        b.display_time_seconds as banner_display_time
+      FROM templates t
+      LEFT JOIN banners b ON t.prelogin_banner_id = b.id
+      WHERE t.id = $1;
+    `;
     const templateDetailsResult = await db.query(templateDetailsQuery, [templateId]);
 
     if (templateDetailsResult.rows.length === 0) {
       return res.status(404).json({ message: `Template com ID ${templateId} não encontrado.` });
     }
 
-    // 3. Enviar os detalhes do template para o frontend
+    // 3. Enviar os detalhes combinados do template e do banner para o frontend
     res.json(templateDetailsResult.rows[0]);
 
   } catch (error) {
@@ -79,9 +87,6 @@ const getPortalPage = async (req, res) => {
   }
 };
 
-
-// --- FUNÇÃO ORIGINAL DE REGISTO (sem alterações) ---
-
 /**
  * @desc    Regista um novo utilizador nas tabelas do FreeRADIUS e de detalhes.
  * @route   POST /api/auth/register
@@ -89,51 +94,38 @@ const getPortalPage = async (req, res) => {
  */
 const registerUser = async (req, res) => {
     const { nomeCompleto, email, senha, telefone, mac, routerName } = req.body;
-
     try {
-        // Validação dos dados de entrada
         if (!nomeCompleto || !email || !senha || !telefone || !mac || !routerName) {
             return res.status(400).json({ message: 'Por favor, preencha todos os campos.' });
         }
-
-        // Verifica se o utilizador (e-mail) já existe na tabela radcheck
         const userExists = await db.query('SELECT username FROM radcheck WHERE username = $1', [email]);
         if (userExists.rows.length > 0) {
             return res.status(409).json({ message: 'Este e-mail já está registado.' });
         }
-
-        // Criptografa a senha para ser guardada na base de dados
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(senha, salt);
-
-        // Insere os dados de autenticação na tabela 'radcheck'
         const radCheckQuery = `
             INSERT INTO radcheck (username, attribute, op, value) 
             VALUES ($1, 'Crypt-Password', ':=', $2)
         `;
         await db.query(radCheckQuery, [email, hashedPassword]);
-
-        // Insere os dados adicionais na nossa tabela 'userdetails'
         const userDetailsQuery = `
             INSERT INTO userdetails (username, nome_completo, telefone, mac_address, router_name) 
             VALUES ($1, $2, $3, $4, $5)
         `;
         await db.query(userDetailsQuery, [email, nomeCompleto, telefone, mac, routerName]);
-
         res.status(201).json({
             message: 'Utilizador registado com sucesso!',
         });
-
     } catch (error) {
         console.error('Erro ao registar utilizador:', error);
-        // Em caso de erro, é uma boa prática remover o utilizador da 'radcheck' se ele foi inserido
         await db.query('DELETE FROM radcheck WHERE username = $1', [email]);
         res.status(500).json({ message: 'Erro interno do servidor.' });
     }
 };
 
 module.exports = {
-    getPortalPage, // <-- Nova função exportada
+    getPortalPage,
     registerUser,
 };
 

@@ -5,15 +5,12 @@
     box-sizing: border-box;
 }
 
-/* --- SEÇÃO DE VARIÁVEIS CSS ATUALIZADA --- */
+/* Variáveis CSS para o Tema Dinâmico */
 :root {
-    /* Cores padrão do gradiente do botão */
     --gradient-start: #3182ce;
     --gradient-end: #2b6cb0;
-    /* Tamanho da fonte base */
     --base-font-size: 16px;
-    /* Cor da fonte principal (padrão) */
-    --font-color: #2d3748; /* <-- NOVA VARIÁVEL */
+    --font-color: #2d3748;
 }
 
 body {
@@ -24,8 +21,7 @@ body {
     align-items: center;
     height: 100vh;
     font-size: var(--base-font-size);
-    /* A cor base do corpo agora também é dinâmica */
-    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
+    color: var(--font-color);
 }
 
 /* Container principal do formulário */
@@ -37,9 +33,9 @@ body {
     width: 100%;
     max-width: 400px;
     text-align: center;
+    z-index: 10; /* Garante que o formulário fique acima do fundo, mas abaixo do banner */
 }
 
-/* Estilos para o container do logótipo dinâmico */
 #logo-container {
     display: flex;
     justify-content: center;
@@ -48,25 +44,17 @@ body {
     margin-bottom: 20px;
 }
 
-/* Cabeçalho do formulário */
-.form-header {
-    margin-bottom: 30px;
-}
-
 .form-header h1 {
     font-size: 24px;
     margin-bottom: 8px;
-    /* A cor do título agora é dinâmica */
-    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
+    color: var(--font-color);
 }
 
 .form-header p {
     font-size: 16px;
-    /* A cor do parágrafo é um pouco mais clara, mas baseada na cor principal */
-    color: #718096; /* Mantido para contraste, mas poderia ser outra variável */
+    color: #718096;
 }
 
-/* Grupos de input (label + campo) */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
@@ -77,8 +65,7 @@ body {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 8px;
-    /* A cor das etiquetas agora é dinâmica */
-    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
+    color: var(--font-color);
 }
 
 .input-group input {
@@ -96,7 +83,6 @@ body {
     box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
 }
 
-/* Botão principal */
 .btn {
     width: 100%;
     padding: 14px;
@@ -115,12 +101,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-/* Rodapé do formulário */
 .form-footer {
     margin-top: 25px;
     font-size: 14px;
@@ -132,25 +112,77 @@ body {
     text-decoration: none;
 }
 
-.form-footer a:hover {
-    text-decoration: underline;
+
+/* --- NOVOS ESTILOS PARA O BANNER PRÉ-LOGIN --- */
+
+.banner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
 }
 
-/* Mensagens de feedback */
-#message {
-    margin-top: 20px;
-    padding: 12px;
-    border-radius: 8px;
+.banner-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.banner-modal {
+    position: relative;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    max-width: 80%;
+    max-height: 80%;
+}
+
+.banner-modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    display: block;
+    border-radius: 5px;
+}
+
+.banner-modal a {
+    display: block;
+}
+
+.banner-close-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 35px;
+    height: 35px;
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+
+.banner-countdown {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 16px;
     font-weight: 500;
-}
-
-.message.error {
-    background-color: #fed7d7;
-    color: #c53030;
-}
-
-.message.success {
-    background-color: #c6f6d5;
-    color: #2f855a;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
