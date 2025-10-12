@@ -3,57 +3,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NOVA LÓGICA: CARREGAMENTO DINÂMICO DO TEMA DO PORTAL ---
 
-    // Define o endereço base da sua API de backend
-    const API_BASE_URL = 'http://10.0.0.46:3000'; // <-- ALTERAÇÃO CRUCIAL
+    const API_BASE_URL = 'http://10.0.0.46:3000';
 
-    // Função assíncrona para buscar e aplicar o tema do portal
     const loadPortalTheme = async () => {
         const routerName = getUrlParameter('routerName');
-
         if (!routerName) {
             console.error('Parâmetro routerName não encontrado no URL.');
             return;
         }
 
         try {
-            // Chama a nova API usando o endereço completo
             const response = await fetch(`${API_BASE_URL}/api/portal?routerName=${routerName}`);
-            
             if (!response.ok) {
-                throw new Error('Não foi possível carregar os dados de personalização do portal.');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Não foi possível carregar os dados de personalização.');
             }
-
             const templateData = await response.json();
             applyTheme(templateData);
-
         } catch (error) {
             console.error('Erro ao buscar o tema do portal:', error);
         }
     };
 
-    // Função para aplicar os dados do template à página HTML
     const applyTheme = (data) => {
         if (data.login_background_url) {
             document.body.style.backgroundImage = `url('${data.login_background_url}')`;
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
         }
+        
         const logoContainer = document.getElementById('logo-container');
         if (data.logo_url && logoContainer) {
             logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto;">`;
         }
+
+        // --- SOLUÇÃO DEFINITIVA PARA APLICAR A COR ---
         if (data.primary_color) {
-            document.documentElement.style.setProperty('--primary-color', data.primary_color);
+            const mainButton = document.querySelector('.btn');
+            if (mainButton) {
+                // Usa setProperty com '!important' para garantir que o estilo seja aplicado sobre o CSS
+                // Primeiro removemos o gradiente e depois aplicamos a cor
+                mainButton.style.setProperty('background', 'none', 'important');
+                mainButton.style.setProperty('background-color', data.primary_color, 'important');
+            }
         }
+        
         if (data.font_size) {
-             document.documentElement.style.setProperty('--base-font-size', data.font_size);
+             document.documentElement.style.fontSize = data.font_size;
         }
     };
 
     loadPortalTheme();
 
 
-    // --- LÓGICA ORIGINAL (sem alterações) ---
+    // --- LÓGICA ORIGINAL DO SEU FICHEIRO (sem alterações) ---
     const registerLink = document.getElementById('registerLink');
     if (registerLink) {
         registerLink.addEventListener('click', (event) => {

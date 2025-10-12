@@ -26,6 +26,15 @@ body {
     text-align: center;
 }
 
+/* NOVO: Estilos para o container do logótipo dinâmico */
+#logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50px; /* Garante um espaço mesmo que o logo não carregue */
+    margin-bottom: 20px;
+}
+
 /* Cabeçalho do formulário */
 .form-header {
     margin-bottom: 30px;
@@ -43,7 +52,7 @@ body {
     color: #6a737d;
 }
 
-/* Grupos de input (label + input) */
+/* Grupos de input */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
@@ -88,7 +97,12 @@ body {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
 }
 
 /* Rodapé do formulário */
@@ -99,31 +113,28 @@ body {
 
 .form-footer a {
     color: #3182ce;
-    text-decoration: none;
     font-weight: 500;
+    text-decoration: none;
 }
 
 .form-footer a:hover {
     text-decoration: underline;
 }
 
-/* Estilos para mensagens de feedback */
-.message {
+/* Mensagens de feedback */
+#message {
     margin-top: 20px;
     padding: 12px;
     border-radius: 8px;
     font-weight: 500;
-    display: none; /* Começa escondido */
 }
 
-.message.success {
+#message.success {
     background-color: #c6f6d5;
     color: #2f855a;
-    display: block;
 }
 
-.message.error {
+#message.error {
     background-color: #fed7d7;
     color: #c53030;
-    display: block;
 }
