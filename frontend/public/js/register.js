@@ -1,122 +1,128 @@
-// Aguarda o carregamento completo do DOM antes de executar o script
+// Aguarda o carregamento completo do DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // --- LÓGICA PARA MANTER OS PARÂMETROS NA NAVEGAÇÃO ---
+
+    // --- LÓGICA DE CARREGAMENTO DINÂMICO DO TEMA ---
+    const API_BASE_URL = 'http://10.0.0.46:3000';
+
+    const loadPortalTheme = async () => {
+        const routerName = getUrlParameter('routerName');
+        if (!routerName) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/portal?routerName=${routerName}`);
+            if (!response.ok) throw new Error('Falha ao carregar o tema.');
+            const templateData = await response.json();
+            applyTheme(templateData);
+        } catch (error) {
+            console.error('Erro ao buscar o tema do portal:', error);
+        }
+    };
+
+    const darkenHexColor = (hex, percent) => {
+        if (!hex) return '#000000';
+        let r = parseInt(hex.substring(1, 3), 16),
+            g = parseInt(hex.substring(3, 5), 16),
+            b = parseInt(hex.substring(5, 7), 16);
+        r = parseInt(r * (100 - percent) / 100);
+        g = parseInt(g * (100 - percent) / 100);
+        b = parseInt(b * (100 - percent) / 100);
+        const toHex = (c) => ('0' + c.toString(16)).slice(-2);
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    };
+
+    const applyTheme = (data) => {
+        if (data.login_background_url) {
+            document.body.style.backgroundImage = `url('${data.login_background_url}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+        }
+        const logoContainer = document.getElementById('logo-container');
+        if (data.logo_url && logoContainer) {
+            logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logótipo do Portal" style="max-width: 150px; height: auto;">`;
+        }
+        if (data.primary_color) {
+            const darkerColor = darkenHexColor(data.primary_color, 20);
+            document.documentElement.style.setProperty('--gradient-start', data.primary_color);
+            document.documentElement.style.setProperty('--gradient-end', darkerColor);
+        }
+        if (data.font_color) {
+            document.documentElement.style.setProperty('--font-color', data.font_color);
+        }
+        if (data.font_size) {
+            document.documentElement.style.setProperty('--base-font-size', data.font_size);
+        }
+    };
+    
+    // Inicia o carregamento do tema
+    loadPortalTheme();
+
+
+    // --- LÓGICA EXISTENTE (Validação de Senha e Submissão) ---
+
     const loginLink = document.getElementById('loginLink');
     if (loginLink) {
         loginLink.addEventListener('click', (event) => {
             event.preventDefault();
-            const searchParams = window.location.search;
-            window.location.href = 'index.html' + searchParams;
+            window.location.href = 'index.html' + window.location.search;
         });
     }
 
-    // --- NOVA LÓGICA DE VALIDAÇÃO DE SENHA ---
     const passwordInput = document.getElementById('senha');
     const lengthCheck = document.getElementById('length-check');
     const submitButton = document.getElementById('submitButton');
 
-    // Adiciona um "ouvinte" para o evento de digitação no campo da senha
     passwordInput.addEventListener('input', () => {
         const password = passwordInput.value;
-        let isLengthValid = false;
+        let isLengthValid = password.length >= 6;
 
-        // 1. Verifica o comprimento da senha
-        if (password.length >= 6) {
-            lengthCheck.className = 'valid'; // Muda a cor para verde
-            isLengthValid = true;
-        } else {
-            lengthCheck.className = 'invalid'; // Mantém a cor vermelha
-            isLengthValid = false;
-        }
-
-        // Ativa ou desativa o botão de submissão com base na validade da senha
-        if (isLengthValid) {
-            submitButton.disabled = false; // Ativa o botão
-        } else {
-            submitButton.disabled = true; // Desativa o botão
-        }
+        lengthCheck.className = isLengthValid ? 'valid' : 'invalid';
+        submitButton.disabled = !isLengthValid;
     });
-    // --- FIM DA NOVA LÓGICA ---
-
-    // Seleciona os elementos do formulário e da mensagem
+    
     const registerForm = document.getElementById('registerForm');
     const messageDiv = document.getElementById('message');
 
-    // Adiciona um "ouvinte" para o evento de submissão do formulário
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        // Limpa mensagens anteriores e desativa o botão para evitar cliques duplos
-        messageDiv.textContent = '';
-        messageDiv.className = 'message';
-        submitButton.disabled = true;
-        submitButton.textContent = 'Aguarde...';
-
-        // Captura os valores dos campos do formulário
-        const nomeCompleto = document.getElementById('nomeCompleto').value;
-        const email = document.getElementById('email').value;
-        const telefone = document.getElementById('telefone').value;
-        const senha = passwordInput.value; // Usa a referência que já temos
         
-        // Captura o endereço MAC e o NOME DO ROTEADOR da URL
-        const mac = getUrlParameter('mac');
-        const routerName = getUrlParameter('routerName');
+        submitButton.disabled = true;
+        submitButton.textContent = 'A processar...';
 
-        // Validação para garantir que os dados essenciais do hotspot foram recebidos
-        if (!mac || !routerName) {
-            displayMessage('Dados do hotspot inválidos. Por favor, reconecte-se à rede.', 'error');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Cadastrar';
-            return;
-        }
-
-        // Monta o corpo da requisição com os dados a serem enviados para o backend
         const userData = {
-            nomeCompleto,
-            email,
-            telefone,
-            senha,
-            mac,
-            routerName
+            nomeCompleto: document.getElementById('nomeCompleto').value,
+            email: document.getElementById('email').value,
+            senha: document.getElementById('senha').value,
+            telefone: document.getElementById('telefone').value,
+            mac: getUrlParameter('mac'),
+            routerName: getUrlParameter('routerName')
         };
-
+        
         try {
-            // Envia a requisição para a API de registro com o IP do servidor
-            const response = await fetch('http://10.0.0.56:3000/api/auth/register', {
+            // Usa a API_BASE_URL para a chamada de registo
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
             });
 
-            // Converte a resposta da API para JSON
             const data = await response.json();
 
-            // Verifica se a requisição foi bem-sucedida
-            if (response.ok) {
-                displayMessage(data.message || 'Cadastro realizado com sucesso! Redirecionando para o login...', 'success');
-                // Aguarda 2 segundos e redireciona o usuário para a página de login, mantendo os parâmetros da URL
-                setTimeout(() => {
-                    window.location.href = 'index.html' + location.search;
-                }, 2000);
-            } else {
-                // Se houve um erro, exibe a mensagem retornada pela API
-                throw new Error(data.message || 'Ocorreu um erro no cadastro.');
+            if (!response.ok) {
+                throw new Error(data.message || 'Erro no cadastro.');
             }
+
+            displayMessage('Cadastro realizado com sucesso! A redirecionar...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html' + window.location.search;
+            }, 2000);
+
         } catch (error) {
-            // Em caso de erro na comunicação com a API, exibe uma mensagem genérica
             displayMessage(error.message, 'error');
             submitButton.disabled = false;
             submitButton.textContent = 'Cadastrar';
         }
     });
 
-    /**
-     * @desc    Exibe uma mensagem de feedback para o usuário.
-     * @param   {string} text - O texto da mensagem.
-     * @param   {string} type - O tipo da mensagem ('success' ou 'error').
-     */
     function displayMessage(text, type) {
         messageDiv.textContent = text;
         messageDiv.className = `message ${type}`;
