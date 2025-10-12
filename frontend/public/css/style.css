@@ -5,6 +5,15 @@
     box-sizing: border-box;
 }
 
+/* --- NOVA SEÇÃO: Variáveis CSS para o Tema Dinâmico --- */
+:root {
+    /* Cores padrão do gradiente do botão */
+    --gradient-start: #3182ce;
+    --gradient-end: #2b6cb0;
+    /* Tamanho da fonte base */
+    --base-font-size: 16px;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f0f2f5;
@@ -13,6 +22,7 @@ body {
     align-items: center;
     height: 100vh;
     color: #333;
+    font-size: var(--base-font-size); /* Usa a variável de tamanho de fonte */
 }
 
 /* Container principal do formulário */
@@ -26,12 +36,12 @@ body {
     text-align: center;
 }
 
-/* NOVO: Estilos para o container do logótipo dinâmico */
+/* Estilos para o container do logótipo dinâmico */
 #logo-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 50px; /* Garante um espaço mesmo que o logo não carregue */
+    min-height: 50px;
     margin-bottom: 20px;
 }
 
@@ -41,18 +51,17 @@ body {
 }
 
 .form-header h1 {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 24px;
     margin-bottom: 8px;
-    color: #1a202c;
+    color: #2d3748;
 }
 
 .form-header p {
     font-size: 16px;
-    color: #6a737d;
+    color: #718096;
 }
 
-/* Grupos de input */
+/* Grupos de input (label + campo) */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
@@ -81,11 +90,12 @@ body {
     box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
 }
 
-/* Botão principal */
+/* --- ALTERAÇÃO CRUCIAL NO BOTÃO --- */
 .btn {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(90deg, #3182ce, #2b6cb0);
+    /* Usa as variáveis CSS para criar o gradiente dinâmico */
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
     color: #ffffff;
     border: none;
     border-radius: 8px;
@@ -101,7 +111,7 @@ body {
 }
 
 .btn:disabled {
-    background: #a0aec0;
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
@@ -129,12 +139,12 @@ body {
     font-weight: 500;
 }
 
-#message.success {
-    background-color: #c6f6d5;
-    color: #2f855a;
-}
-
-#message.error {
+.message.error {
     background-color: #fed7d7;
     color: #c53030;
+}
+
+.message.success {
+    background-color: #c6f6d5;
+    color: #2f855a;
 }

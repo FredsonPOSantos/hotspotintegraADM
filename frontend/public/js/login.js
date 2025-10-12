@@ -1,7 +1,7 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- NOVA LÓGICA: CARREGAMENTO DINÂMICO DO TEMA DO PORTAL ---
+    // --- LÓGICA DE CARREGAMENTO DINÂMICO DO TEMA (ATUALIZADA) ---
 
     const API_BASE_URL = 'http://10.0.0.46:3000';
 
@@ -31,6 +31,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    /**
+     * @desc    Escurece uma cor hexadecimal.
+     * @param   {string} hex - A cor em formato hexadecimal (ex: '#RRGGBB').
+     * @param   {number} percent - A percentagem para escurecer (ex: 20 para 20%).
+     * @returns {string} - A nova cor hexadecimal.
+     */
+    const darkenHexColor = (hex, percent) => {
+        let r = parseInt(hex.substring(1, 3), 16);
+        let g = parseInt(hex.substring(3, 5), 16);
+        let b = parseInt(hex.substring(5, 7), 16);
+
+        r = parseInt(r * (100 - percent) / 100);
+        g = parseInt(g * (100 - percent) / 100);
+        b = parseInt(b * (100 - percent) / 100);
+
+        r = (r < 255) ? r : 255;  
+        g = (g < 255) ? g : 255;  
+        b = (b < 255) ? b : 255;  
+
+        const rr = ((r.toString(16).length === 1) ? '0' + r.toString(16) : r.toString(16));
+        const gg = ((g.toString(16).length === 1) ? '0' + g.toString(16) : g.toString(16));
+        const bb = ((b.toString(16).length === 1) ? '0' + b.toString(16) : b.toString(16));
+
+        return `#${rr}${gg}${bb}`;
+    };
+
     const applyTheme = (data) => {
         console.log('[DIAGNÓSTICO] A aplicar o tema na página...');
         if (data.login_background_url) {
@@ -47,21 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- ALTERAÇÃO CRUCIAL ---
-        // Aplica a cor diretamente ao botão para garantir que se sobrepõe ao CSS
+        // Agora, em vez de alterar o botão, definimos as variáveis CSS
         if (data.primary_color) {
-            const mainButton = document.querySelector('.btn');
-            if (mainButton) {
-                console.log('[DIAGNÓSTICO] Elemento .btn encontrado.');
-                // Força a remoção de qualquer fundo existente (como gradientes) e aplica a nova cor
-                mainButton.style.background = data.primary_color;
-                console.log(`[DIAGNÓSTICO] Cor primária aplicada ao botão: ${data.primary_color}`);
-            } else {
-                console.error('[DIAGNÓSTICO] Elemento .btn não foi encontrado na página.');
-            }
+            const darkerColor = darkenHexColor(data.primary_color, 20); // Escurece em 20%
+            document.documentElement.style.setProperty('--gradient-start', data.primary_color);
+            document.documentElement.style.setProperty('--gradient-end', darkerColor);
+            console.log(`[DIAGNÓSTICO] Cores do gradiente aplicadas: ${data.primary_color} e ${darkerColor}`);
         }
         
         if (data.font_size) {
-             document.documentElement.style.fontSize = data.font_size;
+             document.documentElement.style.setProperty('--base-font-size', data.font_size);
              console.log(`[DIAGNÓSTICO] Tamanho da fonte aplicado: ${data.font_size}`);
         }
         console.log('[DIAGNÓSTICO] Aplicação do tema concluída.');
