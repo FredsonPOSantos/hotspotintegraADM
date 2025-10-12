@@ -5,13 +5,15 @@
     box-sizing: border-box;
 }
 
-/* --- NOVA SEÇÃO: Variáveis CSS para o Tema Dinâmico --- */
+/* --- SEÇÃO DE VARIÁVEIS CSS ATUALIZADA --- */
 :root {
     /* Cores padrão do gradiente do botão */
     --gradient-start: #3182ce;
     --gradient-end: #2b6cb0;
     /* Tamanho da fonte base */
     --base-font-size: 16px;
+    /* Cor da fonte principal (padrão) */
+    --font-color: #2d3748; /* <-- NOVA VARIÁVEL */
 }
 
 body {
@@ -21,8 +23,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    color: #333;
-    font-size: var(--base-font-size); /* Usa a variável de tamanho de fonte */
+    font-size: var(--base-font-size);
+    /* A cor base do corpo agora também é dinâmica */
+    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
 }
 
 /* Container principal do formulário */
@@ -53,12 +56,14 @@ body {
 .form-header h1 {
     font-size: 24px;
     margin-bottom: 8px;
-    color: #2d3748;
+    /* A cor do título agora é dinâmica */
+    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
 }
 
 .form-header p {
     font-size: 16px;
-    color: #718096;
+    /* A cor do parágrafo é um pouco mais clara, mas baseada na cor principal */
+    color: #718096; /* Mantido para contraste, mas poderia ser outra variável */
 }
 
 /* Grupos de input (label + campo) */
@@ -72,7 +77,8 @@ body {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 8px;
-    color: #4a5568;
+    /* A cor das etiquetas agora é dinâmica */
+    color: var(--font-color); /* <-- APLICAÇÃO DA VARIÁVEL */
 }
 
 .input-group input {
@@ -90,11 +96,10 @@ body {
     box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
 }
 
-/* --- ALTERAÇÃO CRUCIAL NO BOTÃO --- */
+/* Botão principal */
 .btn {
     width: 100%;
     padding: 14px;
-    /* Usa as variáveis CSS para criar o gradiente dinâmico */
     background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
     color: #ffffff;
     border: none;
@@ -148,3 +153,4 @@ body {
     background-color: #c6f6d5;
     color: #2f855a;
 }
+
