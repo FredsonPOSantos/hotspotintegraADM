@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rota Hotspot</title>
+    <!-- Link para a folha de estilos CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Importa a fonte Inter do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Bem-vindo A Uma Nova Experiençia!</h1>
+            <p>Faça login para acessar à rede.</p>
+        </div>
+        <!-- Containers para os banners. Serão preenchidos dinamicamente. -->
+        <div id="pre-login-banner-container" style="display: none; margin-bottom: 1rem;"></div>
+        <div id="post-login-banner-container" style="display: none; margin-bottom: 1rem;"></div>
+
+        <!-- Formulário de Login -->
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Seu E-mail</label>
+                <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required>
+            </div>
+            <div class="input-group">
+                <label for="senha">Sua Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="A sua senha" required>
+            </div>
+            <button type="submit" class="btn">Entrar</button>
+        </form>
+
+        <div class="form-footer">
+            <!-- O href foi alterado para ser definido dinamicamente via JavaScript -->
+            <p>Ainda não tem uma conta? <a id="registerLink" href="#">Cadastre-se Aqui</a></p>
+        </div>
+        
+        <!-- Elemento para exibir mensagens de erro ou sucesso -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/campaign-loader.js"></script>
+    <!-- O seu script específico da página (login.js ou register.js) vem por último -->
+    <script src="js/login.js"></script> 
+    <!-- ou <script src="js/register.js"></script> -->
+</body>
+
+</body>
+</html>

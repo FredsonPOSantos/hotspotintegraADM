@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Rota Hotspot</title>
+    <!-- Link para a mesma folha de estilos da página de login -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Importa a fonte Inter do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Crie sua Conta</h1>
+            <p>Preencha os dados para se cadastrar.</p>
+        </div>
+
+        <!-- Container para o banner de pré-login. Inicialmente escondido. -->
+        <div id="pre-login-banner-container" style="display: none; margin-bottom: 1rem;"></div>
+
+        <!-- Formulário de Cadastro -->
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="nomeCompleto">Nome Completo</label>
+                <input type="text" id="nomeCompleto" name="nomeCompleto" placeholder="Seu nome completo" required>
+            </div>
+            <div class="input-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required>
+            </div>
+            <div class="input-group">
+                <label for="telefone">Telefone</label>
+                <input type="tel" id="telefone" name="telefone" placeholder="(00) 90000-0000" required>
+            </div>
+            <div class="input-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="Crie uma senha forte" required>
+                <!-- NOVA ÁREA PARA VALIDAÇÃO DA SENHA -->
+                <div id="password-feedback" class="password-feedback">
+                    <p id="length-check" class="invalid">Pelo menos 6 caracteres</p>
+                </div>
+            </div>
+            <!-- BOTÃO CORRIGIDO com id e estado inicial disabled -->
+            <button type="submit" id="submitButton" class="btn" disabled>Cadastrar</button>
+        </form>
+
+        <div class="form-footer">
+            <p>Já tem uma conta? <a id="loginLink" href="#">Faça login</a></p>
+        </div>
+        
+        <!-- Elemento para exibir mensagens de erro ou sucesso -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <!-- Links para os arquivos JavaScript -->
+    <script src="js/utils.js"></script>
+    <script src="js/campaign-loader.js"></script>
+    <script src="js/register.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectado - Rota Hotspot</title>
+    <!-- Reutilizamos a mesma folha de estilos para manter a consistência visual -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- O container principal foi ligeiramente adaptado para esta página -->
+    <div class="status-container">
+        
+        <div class="status-header">
+            <!-- O nome do utilizador será inserido aqui pelo JavaScript -->
+            <h1 id="welcomeMessage">Bem-vindo A Uma Nova Experiência!</h1>
+        </div>
+
+        <!-- Container para os banners de pós-login. -->
+        <div id="post-login-banner-container" class="banner-area">
+            <!-- Os banners serão inseridos aqui dinamicamente -->
+            <p>A sua Conexão está ativa.</p>
+        </div>
+
+        <div class="status-info">
+            <p>Tempo de sessão restante:</p>
+            <!-- O contador de tempo será inserido aqui -->
+            <h2 id="session-timer">--:--</h2>
+        </div>
+
+        <div class="status-footer">
+            <button id="logoutButton" class="btn btn-secondary">Desconectar</-button>
+        </div>
+        
+    </div>
+
+    <!-- Script para controlar a lógica desta página -->
+    <script src="js/utils.js"></script>
+    <script src="js/status.js"></script>
+</body>
+</html>
