@@ -81,9 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            // [CORRIGIDO] Envia a requisição para a API de registo no servidor ADM.
-            // A variável API_BASE_URL é definida no ficheiro campaign-loader.js,
-            // que deve ser carregado ANTES deste script no HTML.
+            // Envia a requisição para a API de registo no servidor ADM.
+            // A variável global API_BASE_URL é definida diretamente no template .ejs
+            // antes de este script ser carregado.
             const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {

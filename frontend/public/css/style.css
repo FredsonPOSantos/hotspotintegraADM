@@ -1,129 +1,131 @@
-/* Reset básico e configurações globais */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Estilos Gerais e Variáveis de Fallback */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f0f2f5;
+    /* As variáveis são definidas no .ejs e usadas aqui */
+    font-family: var(--font-family, 'Inter', sans-serif);
+    background-color: var(--login-bg-color, #f0f2f5);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    color: #333;
+    min-height: 100vh;
+    margin: 0;
+    color: var(--login-font-color, #333);
+    font-size: var(--base-font-size, 16px);
+    background-size: cover;
+    background-position: center;
 }
 
-/* Container principal do formulário */
+/* Container do Formulário */
 .form-container {
-    background-color: #ffffff;
+    background-color: var(--login-form-bg-color, #fff);
     padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
-    text-align: center;
+}
+.form-container h1 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: var(--login-font-color, #333);
+}
+.form-container p {
+    margin-bottom: 25px;
+    color: var(--login-font-color, #666);
+    font-size: 0.95em;
 }
 
-/* Cabeçalho do formulário */
-.form-header {
-    margin-bottom: 30px;
-}
-
-.form-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #1a202c;
-}
-
-.form-header p {
-    font-size: 16px;
-    color: #6a737d;
-}
-
-/* Grupos de input (label + input) */
+/* Grupos de Input */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
 }
-
 .input-group label {
     display: block;
-    font-size: 14px;
-    font-weight: 500;
     margin-bottom: 8px;
-    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--login-font-color, #4a5568);
 }
-
 .input-group input {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #cbd5e0;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+    font-size: 1em;
 }
-
 .input-group input:focus {
     outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+    border-color: var(--login-button-color, #007bff);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-/* Botão principal */
-.btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(90deg, #3182ce, #2b6cb0);
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+/* Feedback de Senha */
+.password-feedback {
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+.password-feedback p {
+    margin: 0;
+    transition: color 0.3s;
+}
+.password-feedback .invalid {
+    color: #e53e3e; /* Vermelho para inválido */
+}
+.password-feedback .valid {
+    color: #38a169; /* Verde para válido */
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
-}
-
-/* Rodapé do formulário */
+/* Rodapé do Formulário */
 .form-footer {
-    margin-top: 25px;
-    font-size: 14px;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
 }
-
 .form-footer a {
-    color: #3182ce;
+    color: var(--login-button-color, #007bff);
     text-decoration: none;
     font-weight: 500;
 }
-
 .form-footer a:hover {
     text-decoration: underline;
 }
 
-/* Estilos para mensagens de feedback */
-.message {
-    margin-top: 20px;
+/* Botão */
+.btn{
     padding: 12px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: none; /* Começa escondido */
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.3s, filter 0.3s;
 }
 
+.btn:hover:not(:disabled) {
+    filter: brightness(90%);
+}
+
+.btn:disabled {
+    background-color: #a0aec0; /* Cinza para desativado */
+    cursor: not-allowed;
+}
+
+/* Mensagens de Feedback */
+.message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 500;
+    display: none; /* Escondido por padrão */
+}
 .message.success {
     background-color: #c6f6d5;
     color: #2f855a;
-    display: block;
 }
-
 .message.error {
     background-color: #fed7d7;
     color: #c53030;
-    display: block;
 }
+

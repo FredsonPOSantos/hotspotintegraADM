@@ -1,12 +1,34 @@
+<%
+    const settings = campaign.loginPageSettings || {};
+    const template = campaign.template || {};
+
+    const primaryColor = template.primaryColor || settings.login_button_color || '#007bff';
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || settings.login_background_color || '#f0f2f5');
+    const formBgColor = settings.login_form_background_color || '#ffffff';
+    const bodyFontColor = template.fontColor || settings.login_font_color || '#333333';
+    const bodyFontSize = template.fontSize || (settings.font_size ? `${settings.font_size}px` : '16px');
+    const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
+%>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <style>
+        :root {
+            --login-bg-color: <%= bodyBgColor %>;
+            --login-form-bg-color: <%= formBgColor %>;
+            --login-font-color: <%= bodyFontColor %>;
+            --login-button-color: <%= primaryColor %>;
+            --base-font-size: <%= bodyFontSize %>;
+        }
+        body {
+            background-image: <%= bodyBgImage %>;
+        }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Rota Hotspot</title>
-    <!-- Link para a mesma folha de estilos da página de login -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Importa a fonte Inter do Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,14 +36,14 @@
 <body>
     <div class="form-container">
         <div class="form-header">
+            <% if (template.logoUrl) { %>
+                <img src="<%= template.logoUrl %>" alt="Logótipo da Campanha" style="max-width: 150px; margin-bottom: 1rem;">
+            <% } %>
             <h1>Crie sua Conta</h1>
             <p>Preencha os dados para se cadastrar.</p>
         </div>
 
-        <!-- Container para o banner de pré-login. Inicialmente escondido. -->
-        <div id="pre-login-banner-container" style="display: none; margin-bottom: 1rem;"></div>
-
-        <!-- Formulário de Cadastro -->
+        <!-- Formulário de Cadastro (sem banners, conforme solicitado) -->
         <form id="registerForm">
             <div class="input-group">
                 <label for="nomeCompleto">Nome Completo</label>
@@ -38,12 +60,10 @@
             <div class="input-group">
                 <label for="senha">Senha</label>
                 <input type="password" id="senha" name="senha" placeholder="Crie uma senha forte" required>
-                <!-- NOVA ÁREA PARA VALIDAÇÃO DA SENHA -->
                 <div id="password-feedback" class="password-feedback">
                     <p id="length-check" class="invalid">Pelo menos 6 caracteres</p>
                 </div>
             </div>
-            <!-- BOTÃO CORRIGIDO com id e estado inicial disabled -->
             <button type="submit" id="submitButton" class="btn" disabled>Cadastrar</button>
         </form>
 
@@ -51,13 +71,10 @@
             <p>Já tem uma conta? <a id="loginLink" href="#">Faça login</a></p>
         </div>
         
-        <!-- Elemento para exibir mensagens de erro ou sucesso -->
         <div id="message" class="message"></div>
     </div>
 
-    <!-- Links para os arquivos JavaScript -->
     <script src="js/utils.js"></script>
-    <script src="js/campaign-loader.js"></script>
     <script src="js/register.js"></script>
 </body>
 </html>

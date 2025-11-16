@@ -1,0 +1,184 @@
+<%# 1. Bloco de Lógica: Define todas as variáveis primeiro %>
+<%
+    // Função auxiliar para construir URLs corretamente
+    const buildUrl = (base, path) => {
+        if (!path) return null;
+        // Se o 'path' já for uma URL completa (começa com http), usa-o diretamente.
+        if (path.startsWith('http')) {
+            return path;
+        }
+        // Caso contrário, junta com a base do servidor ADM.
+        return `${base}${path}`;
+    };
+
+    const settings = campaign.loginPageSettings || {};
+    const template = campaign.template || {};
+    const primaryColor = template.primaryColor || settings.login_button_color || '#007bff';
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || settings.login_background_color || '#f0f2f5');
+    const formBgColor = settings.login_form_background_color || '#ffffff';
+    const bodyFontColor = template.fontColor || settings.login_font_color || '#333333';
+    const bodyFontSize = template.fontSize || (settings.font_size ? `${settings.font_size}px` : '16px');
+    const bodyBgImage = template.backgroundUrl ? `url(${buildUrl(campaign.admServerUrl, template.backgroundUrl)})` : 'none';
+    const logoUrl = buildUrl(campaign.admServerUrl, template.logoUrl);
+%>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <%# 2. Bloco de Estilos: Usa as variáveis definidas acima para gerar o CSS %>
+    <style>
+        :root {
+            --login-bg-color: <%= bodyBgColor %>;
+            --login-form-bg-color: <%= formBgColor %>;
+            --login-font-color: <%= bodyFontColor %>;
+            --login-button-color: <%= primaryColor %>;
+            --base-font-size: <%= bodyFontSize %>;
+        }
+        body {
+            background-image: <%= bodyBgImage %>;
+        }
+        /* Estilos para o overlay do banner */
+        #banner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        /* [NOVO] Contêiner para a imagem e os controles */
+        .banner-content-wrapper {
+            position: relative; /* Essencial para posicionar os filhos (botão e contador) */
+            display: inline-block; /* Ajusta o wrapper ao tamanho da imagem */
+        }
+        /* Estilo para o botão de fechar (X) */
+        #close-banner-btn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        #close-banner-btn:hover {
+            color: #ccc;
+        }
+        /* Estilo para o contador regressivo */
+        #banner-countdown {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rota Hotspot</title>
+    <!-- Link para a folha de estilos CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <%# 3. Lógica do Banner Overlay %>
+    <% if (!campaign.use_default && campaign.preLoginBanner && campaign.preLoginBanner.imageUrl) { %>
+        <div id="banner-overlay">
+            <!-- [NOVO] Wrapper para alinhar os controles com a imagem -->
+            <div class="banner-content-wrapper">
+                <span id="close-banner-btn">&times;</span>
+                <a href="<%= campaign.preLoginBanner.targetUrl || '#' %>" target="_blank">
+                    <img src="<%= campaign.preLoginBanner.imageUrl %>" alt="Campanha Promocional" style="max-width: 90vw; max-height: 90vh; border-radius: 8px; display: block;">
+                </a>
+                <div id="banner-countdown"></div>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="form-container">
+        <div class="form-header" style="text-align: center;">
+            <% if (logoUrl) { %>
+                <img src="<%= logoUrl %>" alt="Logótipo da Campanha" style="max-width: 150px; margin-bottom: 1rem;">
+            <% } %>
+            <h1>Bem-vindo A Uma Nova Experiençia!</h1>
+            <p>Faça login para acessar à rede.</p>
+        </div>
+
+        <!-- Formulário de Login -->
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Seu E-mail</label>
+                <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Sua Senha</label>
+                <input type="password" id="password" name="password" placeholder="Sua senha" required>
+            </div>
+            <button type="submit" class="btn">Entrar</button>
+        </form>
+
+        <div class="form-footer">
+            <p>Ainda não tem uma conta? <a id="registerLink" href="#">Cadastre-se Aqui</a></p>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // Passa os dados da campanha renderizados pelo servidor para o JavaScript do lado do cliente
+        const bannerData = <%- JSON.stringify(campaign.preLoginBanner || null) %>;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('banner-overlay'); // O banner
+            const formContainer = document.querySelector('.form-container'); // O formulário
+
+            // A lógica do banner só deve ser executada se o overlay realmente existir na página.
+            if (overlay && bannerData && bannerData.imageUrl) {
+                const closeBtn = document.getElementById('close-banner-btn'); // O botão 'X'
+                const countdownEl = document.getElementById('banner-countdown'); // Onde o contador aparece
+
+                formContainer.style.visibility = 'hidden'; // Esconde o formulário para o banner aparecer
+                let timeLeft = bannerData.displayTime || 5;
+                let countdownInterval;
+
+                const closeBanner = () => {
+                    clearInterval(countdownInterval); // Para o contador
+                    overlay.style.display = 'none';
+                    formContainer.style.visibility = 'visible';
+                };
+
+                const updateCountdown = () => {
+                    if (timeLeft <= 0) {
+                        closeBanner();
+                    } else {
+                        countdownEl.textContent = `Fechando em ${timeLeft}s...`;
+                        timeLeft--;
+                    }
+                };
+
+                // Inicia o contador
+                updateCountdown(); // Chama uma vez para exibir o tempo inicial
+                countdownInterval = setInterval(updateCountdown, 1000);
+
+                // Adiciona o evento de clique no botão 'X'
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeBanner);
+                }
+            }
+        });
+    </script>
+    <script src="js/utils.js"></script>
+    <script src="js/login.js"></script> 
+</body>
+</html>

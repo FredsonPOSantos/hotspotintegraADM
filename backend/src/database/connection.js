@@ -9,15 +9,9 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-pool.on('connect', () => {
-  console.log('Ligação com o PostgreSQL estabelecida com sucesso!');
-});
-
 pool.on('error', (err) => {
     console.error('Erro inesperado no cliente da base de dados', err);
     process.exit(-1);
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-};
+module.exports = pool;
