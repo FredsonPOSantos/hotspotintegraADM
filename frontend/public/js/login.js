@@ -1,5 +1,30 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
+    // --- LÓGICA DE PRÉ-VISUALIZAÇÃO ---
+    // Esta verificação é redundante se o campaign-loader.js já estiver a fazer o trabalho,
+    // mas é uma boa prática de segurança para garantir que o formulário seja desativado.
+    const previewCampaignId = getUrlParameter('previewCampaignId');
+    if (previewCampaignId) {
+        console.log('[Login.js] Modo de Pré-visualização detectado. A desativar formulário.');
+
+        // Em modo de pré-visualização, desativamos a submissão do formulário
+        const loginFormPreview = document.getElementById('loginForm');
+        if (loginFormPreview) {
+            loginFormPreview.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('A submissão está desativada em modo de pré-visualização.');
+            });
+            // Opcional: desativa visualmente o botão
+            const submitButton = loginFormPreview.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.style.cursor = 'not-allowed';
+                submitButton.style.opacity = '0.6';
+            }
+        }
+        return; // Interrompe a execução normal do login.js
+    }
+
     // --- LÓGICA PARA MANTER OS PARÂMETROS NA NAVEGAÇÃO ---
     const registerLink = document.getElementById('registerLink');
     if (registerLink) {
@@ -73,4 +98,3 @@ document.addEventListener('DOMContentLoaded', () => {
         displayMessage('Login falhou: ' + errorMessage, 'error');
     }
 });
-

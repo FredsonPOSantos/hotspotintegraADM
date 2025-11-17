@@ -8,29 +8,40 @@ const API_BASE_URL = 'http://10.0.0.46:3000';
  * Função principal que é executada quando a página termina de carregar.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Campaign Loader] Página carregada. A iniciar busca por campanha ativa...');
-    loadActiveCampaign();
+    console.log('[Campaign Loader] Página carregada. A iniciar busca por campanha...');
+    loadCampaign();
 });
 
 /**
- * Busca e aplica a campanha ativa.
+ * [ALTERADO] Busca e aplica a campanha, seja ela ativa (via routerName) ou uma pré-visualização (via previewCampaignId).
  */
-async function loadActiveCampaign() {
-    // 1. Extrai o nome do roteador da URL.
-    // O MikroTik deve ser configurado para passar este parâmetro.
-    // Ex: http://portal.hotspot/login?routerName=RT-000001
+async function loadCampaign() {
+    // 1. Verifica se estamos em modo de pré-visualização
+    const previewCampaignId = getUrlParameter('previewCampaignId');
     const routerName = getUrlParameter('routerName');
 
-    if (!routerName) {
-        console.warn('[Campaign Loader] Parâmetro "routerName" não encontrado na URL. A carregar layout padrão.');
-        // Mesmo sem routerName, tentamos aplicar as configurações de aparência padrão
-        applyDefaultStylesFromApi();
-        return;
+    let apiUrl = '';
+    let isPreview = false;
+
+    if (previewCampaignId) {
+        // Modo de Pré-visualização
+        console.log(`[Campaign Loader] Modo de Pré-visualização Ativado para Campanha ID: ${previewCampaignId}`);
+        apiUrl = `${API_BASE_URL}/api/public/campaign-preview?campaignId=${previewCampaignId}`;
+        isPreview = true;
+    } else if (routerName) {
+        // Modo Normal (Produção)
+        console.log(`[Campaign Loader] Modo Normal. Buscando campanha para o roteador: ${routerName}`);
+        apiUrl = `${API_BASE_URL}/api/public/active-campaign?routerName=${routerName}`;
+    } else {
+        // Nenhum parâmetro encontrado, carrega o layout padrão
+        console.warn('[Campaign Loader] Nenhum parâmetro (routerName ou previewCampaignId) encontrado. A carregar layout padrão.');
+        applyDefaultStylesFromApi(); // Tenta buscar as configurações de aparência padrão
+        return; // Interrompe a execução
     }
 
     try {
-        // 2. Chama a API do Painel de Administração.
-        const response = await fetch(`${API_BASE_URL}/api/public/active-campaign?routerName=${routerName}`);
+        // 2. Chama a API apropriada (seja de pré-visualização ou de campanha ativa).
+        const response = await fetch(apiUrl);
         if (!response.ok) {
             throw new Error(`A resposta da API não foi OK: ${response.statusText}`);
         }
@@ -41,7 +52,7 @@ async function loadActiveCampaign() {
         // 3. Renderiza o conteúdo dinâmico.
         if (data && !data.use_default) {
             console.log(`[Campaign Loader] Aplicando campanha ativa: "${data.campaign.name}"`);
-            applyCampaign(data);
+            applyCampaign(data, isPreview); // Passa a flag de pré-visualização
         } else {
             console.log('[Campaign Loader] Nenhuma campanha ativa. A usar layout padrão.');
             // Aplica as configurações de aparência padrão retornadas pela API
@@ -58,9 +69,10 @@ async function loadActiveCampaign() {
 
 /**
  * Aplica os estilos e banners da campanha na página.
- * @param {object} campaignData - O objeto JSON completo retornado pela API.
+ * @param {object} campaignData - O objeto JSON completo da API.
+ * @param {boolean} isPreview - Indica se está em modo de pré-visualização.
  */
-function applyCampaign(campaignData) {
+function applyCampaign(campaignData, isPreview = false) {
     const { preLoginBanner, postLoginBanners, loginPageSettings, template } = campaignData;
     const currentPage = window.location.pathname.split('/').pop() || 'index.html'; // Identifica a página atual
 
@@ -98,11 +110,15 @@ function applyCampaign(campaignData) {
     }
 
     // 2. Lógica de renderização de banners baseada na página
-    if (currentPage.includes('index.html')) {
+    // [ALTERADO] Em modo de pré-visualização, mostramos tudo na página de login.
+    if (currentPage.includes('index.html') || currentPage.includes('login.html')) {
         console.log('[Campaign Loader] Página de Login detectada. A aplicar todos os banners.');
-        // Na página de login, renderiza AMBOS os banners (pré e pós)
+        // Na página de login, renderiza banners pré-login.
         renderBanner(preLoginBanner, 'pre-login-banner-container', 'Campanha Promocional');
-        renderBanners(postLoginBanners, 'post-login-banner-container', 'Oferta Especial');
+        // Se for pré-visualização, também mostramos os banners pós-login para facilitar.
+        if (isPreview) {
+            renderBanners(postLoginBanners, 'post-login-banner-container', 'Oferta Especial');
+        }
 
     } else if (currentPage.includes('register.html')) {
         console.log('[Campaign Loader] Página de Registo detectada. A aplicar apenas estilos, sem banners.');
