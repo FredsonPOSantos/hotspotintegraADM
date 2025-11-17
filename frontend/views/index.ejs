@@ -1,25 +1,14 @@
 <%# 1. Bloco de Lógica: Define todas as variáveis primeiro %>
 <%
-    // Função auxiliar para construir URLs corretamente
-    const buildUrl = (base, path) => {
-        if (!path) return null;
-        // Se o 'path' já for uma URL completa (começa com http), usa-o diretamente.
-        if (path.startsWith('http')) {
-            return path;
-        }
-        // Caso contrário, junta com a base do servidor ADM.
-        return `${base}${path}`;
-    };
-
-    const settings = campaign.loginPageSettings || {};
     const template = campaign.template || {};
-    const primaryColor = template.primaryColor || settings.login_button_color || '#007bff';
-    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || settings.login_background_color || '#f0f2f5');
-    const formBgColor = settings.login_form_background_color || '#ffffff';
-    const bodyFontColor = template.fontColor || settings.login_font_color || '#333333';
-    const bodyFontSize = template.fontSize || (settings.font_size ? `${settings.font_size}px` : '16px');
-    const bodyBgImage = template.backgroundUrl ? `url(${buildUrl(campaign.admServerUrl, template.backgroundUrl)})` : 'none';
-    const logoUrl = buildUrl(campaign.admServerUrl, template.logoUrl);
+    const primaryColor = template.primaryColor || '#007bff';
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
+    const formBgColor = template.formBackgroundColor || '#ffffff';
+    const bodyFontColor = template.fontColor || '#333333';
+    const bodyFontSize = template.fontSize || '16px';
+    const fontFamily = template.fontFamily || "'Inter', sans-serif";
+    const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
+    const logoUrl = template.logoUrl;
 %>
 
 <!DOCTYPE html>
@@ -33,9 +22,11 @@
             --login-font-color: <%= bodyFontColor %>;
             --login-button-color: <%= primaryColor %>;
             --base-font-size: <%= bodyFontSize %>;
+            --font-family: <%= fontFamily %>;
         }
         body {
             background-image: <%= bodyBgImage %>;
+            font-family: var(--font-family);
         }
         /* Estilos para o overlay do banner */
         #banner-overlay {

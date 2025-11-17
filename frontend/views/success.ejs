@@ -1,0 +1,101 @@
+<%
+    const template = campaign.template || {};
+    const primaryColor = template.primaryColor || '#28a745';
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
+    const bodyFontColor = template.fontColor || '#333333';
+    const bodyFontSize = template.fontSize || '16px';
+    const fontFamily = template.fontFamily || "'Inter', sans-serif";
+    const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
+    const logoUrl = template.logoUrl;
+    const postLoginBanner = campaign.postLoginBanner;
+
+    // Parâmetros que vieram do login para passar para a página de status
+    const queryString = new URLSearchParams(query).toString();
+%>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucesso! - Rota Hotspot</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --login-bg-color: <%= bodyBgColor %>;
+            --login-font-color: <%= bodyFontColor %>;
+            --base-font-size: <%= bodyFontSize %>;
+            --font-family: <%= fontFamily %>;
+        }
+        body {
+            background-image: <%= bodyBgImage %>;
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .success-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .success-header img {
+            max-width: 150px;
+            margin-bottom: 1rem;
+        }
+        .success-header h1 {
+            color: <%= primaryColor %>;
+            margin-bottom: 10px;
+        }
+        .success-container p {
+            margin-bottom: 20px;
+        }
+        .post-login-banner {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .post-login-banner img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-header">
+            <% if (logoUrl) { %>
+                <img src="<%= logoUrl %>" alt="Logótipo da Campanha">
+            <% } %>
+            <h1>Login bem-sucedido!</h1>
+        </div>
+        <p>Aguarde, você será redirecionado em breve...</p>
+        
+        <!-- Banner Pós-Login -->
+        <% if (postLoginBanner && postLoginBanner.imageUrl) { %>
+            <div class="post-login-banner">
+                <a href="<%= postLoginBanner.targetUrl || '#' %>" target="_blank">
+                    <img src="<%= postLoginBanner.imageUrl %>" alt="Oferta Especial">
+                </a>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+        // Redireciona para a página de status do MikroTik após 5 segundos
+        setTimeout(() => {
+            // A variável 'queryString' vem do EJS e contém os parâmetros originais
+            window.location.href = `http://$(link-login-only)/status?<%= queryString %>`;
+        }, 5000);
+    </script>
+</body>
+</html>

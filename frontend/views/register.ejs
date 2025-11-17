@@ -1,12 +1,12 @@
 <%
-    const settings = campaign.loginPageSettings || {};
     const template = campaign.template || {};
 
-    const primaryColor = template.primaryColor || settings.login_button_color || '#007bff';
-    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || settings.login_background_color || '#f0f2f5');
-    const formBgColor = settings.login_form_background_color || '#ffffff';
-    const bodyFontColor = template.fontColor || settings.login_font_color || '#333333';
-    const bodyFontSize = template.fontSize || (settings.font_size ? `${settings.font_size}px` : '16px');
+    const primaryColor = template.primaryColor || '#007bff';
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
+    const formBgColor = template.formBackgroundColor || '#ffffff';
+    const bodyFontColor = template.fontColor || '#333333';
+    const bodyFontSize = template.fontSize || '16px';
+    const fontFamily = template.fontFamily || "'Inter', sans-serif";
     const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
 %>
 
@@ -20,9 +20,11 @@
             --login-font-color: <%= bodyFontColor %>;
             --login-button-color: <%= primaryColor %>;
             --base-font-size: <%= bodyFontSize %>;
+            --font-family: <%= fontFamily %>;
         }
         body {
             background-image: <%= bodyBgImage %>;
+            font-family: var(--font-family);
         }
     </style>
     <meta charset="UTF-8">
@@ -35,7 +37,7 @@
 </head>
 <body>
     <div class="form-container">
-        <div class="form-header">
+        <div class="form-header" style="text-align: center;">
             <% if (template.logoUrl) { %>
                 <img src="<%= template.logoUrl %>" alt="Logótipo da Campanha" style="max-width: 150px; margin-bottom: 1rem;">
             <% } %>

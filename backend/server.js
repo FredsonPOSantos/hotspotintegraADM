@@ -29,7 +29,7 @@ app.get('/:page', async (req, res, next) => {
     const requestedPage = req.params.page;
 
     // Validação para garantir que apenas as páginas que queremos renderizar dinamicamente são tratadas aqui.
-    if (requestedPage !== 'index.html' && requestedPage !== 'register.html') {
+    if (requestedPage !== 'index.html' && requestedPage !== 'register.html' && requestedPage !== 'success.html') {
         // Se não for uma das nossas páginas, passa para o próximo middleware (que pode ser um 404).
         return next();
     }
@@ -41,9 +41,9 @@ app.get('/:page', async (req, res, next) => {
     let campaignData = {
         use_default: true,
         template: {},
-        preLoginBanner: null,
+        preLoginBanner: null, // Banner para a página de login
+        postLoginBanner: null, // [NOVO] Banner para a página de sucesso
         postLoginBanners: [],
-        loginPageSettings: {},
         // Adiciona o endereço do servidor ADM para construir URLs de imagem
         admServerUrl: `http://${process.env.ADM_SERVER_IP || '127.0.0.1'}:${process.env.ADM_SERVER_PORT || 3000}`
     };
@@ -51,7 +51,6 @@ app.get('/:page', async (req, res, next) => {
     try {
         // 1. Busca as configurações gerais do sistema como fallback
         const settingsResult = await pool.query('SELECT * FROM system_settings WHERE id = 1');
-        campaignData.loginPageSettings = settingsResult.rows[0] || {};
 
         // 2. Se um routerName foi fornecido, busca a campanha
         if (routerName) {
@@ -78,11 +77,14 @@ app.get('/:page', async (req, res, next) => {
 
                     const templateQuery = `
                         SELECT t.*, 
-                               b.image_url AS pre_login_banner_url, 
-                               b.target_url AS pre_login_target_url,
-                               b.display_time_seconds AS pre_login_banner_time
+                               b_pre.image_url AS pre_login_banner_url,
+                               b_pre.target_url AS pre_login_target_url,
+                               b_pre.display_time_seconds AS pre_login_banner_time,
+                               b_post.image_url AS post_login_banner_url,
+                               b_post.target_url AS post_login_target_url
                         FROM templates t
-                        LEFT JOIN banners b ON t.prelogin_banner_id = b.id AND b.type = 'pre-login' AND b.is_active = true
+                        LEFT JOIN banners AS b_pre ON t.prelogin_banner_id = b_pre.id AND b_pre.type = 'pre-login' AND b_pre.is_active = true
+                        LEFT JOIN banners AS b_post ON t.postlogin_banner_id = b_post.id AND b_post.type = 'post-login' AND b_post.is_active = true
                         WHERE t.id = $1;
                     `;
                     const templateResult = await pool.query(templateQuery, [activeCampaign.template_id]);
@@ -96,14 +98,32 @@ app.get('/:page', async (req, res, next) => {
                         primaryColor: templateData.primary_color,
                         fontColor: templateData.font_color,
                         fontSize: templateData.font_size,
-                        backgroundUrl: templateData.login_background_url,
+                        formBackgroundColor: templateData.form_background_color, // [NOVO]
+                        fontFamily: templateData.font_family, // [NOVO]
+                        // [CORRIGIDO] Constrói a URL completa aqui, no servidor.
+                        backgroundUrl: templateData.login_background_url 
+                            ? (templateData.login_background_url.startsWith('http') 
+                                ? templateData.login_background_url 
+                                : `${campaignData.admServerUrl}${templateData.login_background_url}`)
+                            : null,
                         logoUrl: templateData.logo_url
+                            ? (templateData.logo_url.startsWith('http')
+                                ? templateData.logo_url
+                                : `${campaignData.admServerUrl}${templateData.logo_url}`)
+                            : null
                     };
                     if (templateData.pre_login_banner_url) {
                         campaignData.preLoginBanner = {
                             imageUrl: `${campaignData.admServerUrl}${templateData.pre_login_banner_url}`,
                             targetUrl: templateData.pre_login_target_url,
                             displayTime: templateData.pre_login_banner_time || 5
+                        };
+                    }
+                    // [NOVO] Preenche os dados do banner de pós-login
+                    if (templateData.post_login_banner_url) {
+                        campaignData.postLoginBanner = {
+                            imageUrl: `${campaignData.admServerUrl}${templateData.post_login_banner_url}`,
+                            targetUrl: templateData.post_login_target_url
                         };
                     }
                     // A lógica para banners pós-login pode ser adicionada aqui se necessário no futuro
