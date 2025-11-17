@@ -192,6 +192,23 @@
                     if (template.primaryColor && busBodyEl) {
                         busBodyEl.style.fill = template.primaryColor;
                     }
+
+                    // [NOVO] Altera o fundo da página
+                    if (template.statusBgImageUrl) {
+                        document.body.style.backgroundImage = `url('${template.statusBgImageUrl}')`;
+                        document.body.style.backgroundSize = 'cover';
+                        document.body.style.backgroundPosition = 'center';
+                    } else if (template.statusBgColor) {
+                        document.body.style.backgroundColor = template.statusBgColor;
+                    }
+
+                    // [NOVO] Altera os tamanhos das fontes
+                    if (template.statusH1FontSize && titleEl) {
+                        titleEl.style.fontSize = template.statusH1FontSize;
+                    }
+                    if (template.statusPFontSize && messageEl) {
+                        messageEl.style.fontSize = template.statusPFontSize;
+                    }
                 }
 
                 if (data && data.postLoginBanner && data.postLoginBanner.imageUrl) {
