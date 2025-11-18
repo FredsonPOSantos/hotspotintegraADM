@@ -93,10 +93,13 @@ app.get('/:page', async (req, res, next) => {
 
                     const templateQuery = `
                         SELECT t.*, 
+                               b_pre.image_url AS pre_login_banner_url,
+                               b_pre.target_url AS pre_login_target_url,
                                b_post.image_url AS post_login_banner_url,
                                b_post.target_url AS post_login_target_url
                         FROM templates t
-                        LEFT JOIN banners AS b_post ON t.postlogin_banner_id = b_post.id AND b_post.type = 'post-login' AND b_post.is_active = true
+                        LEFT JOIN banners AS b_pre ON t.prelogin_banner_id = b_pre.id AND b_pre.type = 'pre-login' AND b_pre.is_active = true
+                        LEFT JOIN banners AS b_post ON t.postlogin_banner_id = b_post.id AND b_post.type = 'post-login'
                         WHERE t.id = $1;
                     `;
                     const templateResult = await pool.query(templateQuery, [activeCampaign.template_id]);
@@ -105,6 +108,14 @@ app.get('/:page', async (req, res, next) => {
                     if (templateData) {
                         const admServerUrl = campaignData.admServerUrl;
                         campaignData.use_default = false;
+
+                        // [CORRIGIDO] Adiciona a lógica para o banner de PRÉ-LOGIN
+                        if (templateData.pre_login_banner_url) {
+                            campaignData.preLoginBanner = {
+                                imageUrl: `${admServerUrl}${templateData.pre_login_banner_url}`,
+                                targetUrl: templateData.pre_login_target_url
+                            };
+                        }
 
                         // [CORRIGIDO] Restaura a lógica para a página de LOGIN
                         // e mantém a lógica para a página de STATUS.
