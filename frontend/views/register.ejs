@@ -66,6 +66,23 @@
                     <p id="length-check" class="invalid">Pelo menos 6 caracteres</p>
                 </div>
             </div>
+
+            <!-- [NOVO] Bloco de consentimento com checkboxes -->
+            <div class="form-group" style="text-align: left; font-size: 0.9em; margin-top: 25px;">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="termsCheckbox" name="terms">
+                    <label for="termsCheckbox">
+                        Eu li e aceito os <a href="/policy/terms" target="_blank" class="form-link">Termos e Condições</a> do serviço.
+                    </label>
+                </div>
+                <div class="checkbox-container" style="margin-top: 10px;">
+                    <input type="checkbox" id="marketingCheckbox" name="marketing">
+                    <label for="marketingCheckbox">
+                        Eu aceito participar de <a href="/policy/promotions" target="_blank" class="form-link">sorteios e promoções</a>.
+                    </label>
+                </div>
+            </div>
+
             <button type="submit" id="submitButton" class="btn" disabled>Cadastrar</button>
         </form>
 

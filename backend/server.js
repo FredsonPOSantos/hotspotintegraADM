@@ -18,6 +18,38 @@ app.set('views', path.join(__dirname, '../frontend/views'));
 // Servir ficheiros estáticos (CSS, JS, imagens) da pasta 'public'
 app.use(express.static(path.join(__dirname, '../frontend/public')));
 
+// [NOVO] Rota para servir as páginas de políticas
+app.get('/policy/:type', async (req, res) => {
+    const { type } = req.params;
+    let contentColumn = '';
+    let pageTitle = '';
+
+    if (type === 'terms') {
+        contentColumn = 'terms_content';
+        pageTitle = 'Termos e Condições';
+    } else if (type === 'promotions') {
+        contentColumn = 'marketing_policy_content';
+        pageTitle = 'Política de Sorteios e Promoções';
+    } else {
+        return res.status(404).send('Página não encontrada.');
+    }
+
+    try {
+        const result = await pool.query(`SELECT ${contentColumn} FROM system_settings WHERE id = 1`);
+        if (result.rows.length === 0 || !result.rows[0][contentColumn]) {
+            return res.status(404).send('Conteúdo não disponível.');
+        }
+
+        const content = result.rows[0][contentColumn];
+        res.render('policy_page', { title: pageTitle, content: content });
+
+    } catch (error) {
+        console.error(`Erro ao buscar política do tipo '${type}':`, error);
+        res.status(500).send('Erro ao carregar a página.');
+    }
+});
+
+
 // Rota para a raiz, que será tratada pela rota principal abaixo
 app.get('/', (req, res) => {
     // Redireciona para /index.html mantendo os query params, que será capturado pela rota :page
@@ -28,7 +60,7 @@ app.get('/', (req, res) => {
 app.get('/:page', async (req, res, next) => {
     const { routerName, previewCampaignId } = req.query; // [MODIFICADO] Captura ambos os parâmetros
     const requestedPage = req.params.page;
-
+    
     // Validação para garantir que apenas as páginas que queremos renderizar dinamicamente são tratadas aqui.
     if (requestedPage !== 'index.html' && requestedPage !== 'register.html' && requestedPage !== 'success.html') {
         // Se não for uma das nossas páginas, passa para o próximo middleware (que pode ser um 404).

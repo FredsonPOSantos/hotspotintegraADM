@@ -13,29 +13,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NOVA LÓGICA DE VALIDAÇÃO DE SENHA ---
     const passwordInput = document.getElementById('senha');
     const lengthCheck = document.getElementById('length-check');
+    const termsCheckbox = document.getElementById('termsCheckbox'); // [NOVO]
     const submitButton = document.getElementById('submitButton');
 
-    // Adiciona um "ouvinte" para o evento de digitação no campo da senha
-    passwordInput.addEventListener('input', () => {
+    // [NOVO] Função para validar o formulário e ativar/desativar o botão
+    const validateForm = () => {
         const password = passwordInput.value;
-        let isLengthValid = false;
+        const termsAccepted = termsCheckbox.checked;
+        let isPasswordValid = false;
 
         // 1. Verifica o comprimento da senha
         if (password.length >= 6) {
             lengthCheck.className = 'valid'; // Muda a cor para verde
-            isLengthValid = true;
+            isPasswordValid = true;
         } else {
             lengthCheck.className = 'invalid'; // Mantém a cor vermelha
-            isLengthValid = false;
+            isPasswordValid = false;
         }
 
-        // Ativa ou desativa o botão de submissão com base na validade da senha
-        if (isLengthValid) {
+        // 2. Ativa o botão apenas se a senha for válida E os termos forem aceites
+        if (isPasswordValid && termsAccepted) {
             submitButton.disabled = false; // Ativa o botão
         } else {
             submitButton.disabled = true; // Desativa o botão
         }
-    });
+    };
+
+    // Adiciona "ouvintes" para validar o formulário em tempo real
+    passwordInput.addEventListener('input', validateForm);
+    termsCheckbox.addEventListener('input', validateForm);
     // --- FIM DA NOVA LÓGICA ---
 
     // Seleciona os elementos do formulário e da mensagem
@@ -57,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value;
         const telefone = document.getElementById('telefone').value;
         const senha = passwordInput.value; // Usa a referência que já temos
+        const acceptsMarketing = document.getElementById('marketingCheckbox').checked; // [NOVO]
         
         // Captura o endereço MAC e o NOME DO ROTEADOR da URL
         const mac = getUrlParameter('mac');
@@ -77,7 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             telefone,
             senha,
             mac,
-            routerName
+            routerName,
+            accepts_marketing: acceptsMarketing, // [NOVO]
+            terms_accepted: termsCheckbox.checked // [NOVO]
         };
 
         try {
