@@ -1,5 +1,17 @@
 <%# 1. Bloco de Lógica: Define todas as variáveis primeiro %>
 <%
+    // [CORREÇÃO] Define a URL base onde as imagens estão hospedadas (Servidor Admin).
+    // Se estiver rodando localmente, use 'http://localhost:3000'.
+    // Em produção (com IPs diferentes), coloque o IP do servidor Admin (ex: 'http://10.0.0.47:3000').
+    const ASSETS_BASE_URL = campaign.admServerUrl || 'http://localhost:3000';
+
+    // Função auxiliar para garantir que a URL seja absoluta
+    const getAssetUrl = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path; // Já é uma URL completa
+        return `${ASSETS_BASE_URL}${path}`;
+    };
+
     const template = campaign.template || {};
     const primaryColor = template.primaryColor || '#007bff';
     const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
@@ -7,8 +19,13 @@
     const bodyFontColor = template.fontColor || '#333333';
     const bodyFontSize = template.fontSize || '16px';
     const fontFamily = template.fontFamily || "'Inter', sans-serif";
-    const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
-    const logoUrl = template.logoUrl;
+    const bodyBgImage = template.backgroundUrl ? `url(${getAssetUrl(template.backgroundUrl)})` : 'none';
+    const logoUrl = getAssetUrl(template.logoUrl);
+
+    // Atualiza a URL do banner promocional, se existir
+    if (campaign.preLoginBanner && campaign.preLoginBanner.imageUrl) {
+        campaign.preLoginBanner.imageUrl = getAssetUrl(campaign.preLoginBanner.imageUrl);
+    }
 %>
 
 <!DOCTYPE html>

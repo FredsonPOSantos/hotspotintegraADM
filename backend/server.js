@@ -5,6 +5,7 @@ const fetch = require('node-fetch'); // [NOVO] Para fazer chamadas de API
 require('dotenv').config(); // Carrega as variáveis de ambiente
 
 // Inicializa a ligação à base de dados PostgreSQL
+// [CORRIGIDO] Aponta para o caminho de conexão correto dentro da estrutura do projeto Hotspot.
 const pool = require('./src/database/connection');
 
 const app = express();
@@ -13,10 +14,10 @@ const app = express();
 app.use(cors()); // Permite que o nosso frontend comunique com o backend
 app.use(express.json()); // Permite que o servidor entenda JSON
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../frontend/views'));
+app.set('views', path.join(__dirname, '../frontend/views')); // [CORRIGIDO] Aponta para a pasta de views correta.
 
 // Servir ficheiros estáticos (CSS, JS, imagens) da pasta 'public'
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use(express.static(path.join(__dirname, '../frontend/public'))); // [CORRIGIDO] Aponta para a pasta public correta.
 
 // [NOVO] Rota para servir as páginas de políticas
 app.get('/policy/:type', async (req, res) => {
@@ -94,6 +95,8 @@ app.get('/:page', async (req, res, next) => {
                 if (previewData && !previewData.use_default) {
                     campaignData.use_default = false;
                     campaignData.template = previewData.template; // A API já retorna a estrutura correta
+                    // [CORRIGIDO] Adiciona a atribuição do banner de pré-login que estava em falta.
+                    campaignData.preLoginBanner = previewData.preLoginBanner;
                     campaignData.postLoginBanner = previewData.postLoginBanner;
                     // Adicionamos uma flag para o template saber que está em modo de pré-visualização
                     campaignData.isPreview = true;
@@ -104,6 +107,27 @@ app.get('/:page', async (req, res, next) => {
         } 
         // --- FIM DA LÓGICA DE PRÉ-VISUALIZAÇÃO ---
         else if (routerName) {
+            /*
+            // --- [MODIFICAÇÃO FUTURA] ---
+            // No futuro, para centralizar a lógica, podemos substituir a query direta
+            // por uma chamada de API ao servidor Admin, similar ao modo de pré-visualização.
+            // Isso tornaria o Portal Hotspot mais "burro" e o Admin mais "inteligente".
+            
+            console.log(`[SRV-HOTSPOT] Buscando campanha via API para o roteador: ${routerName}`);
+            const campaignApiUrl = `${campaignData.admServerUrl}/api/public/campaign-by-router?routerName=${routerName}`;
+            const apiResponse = await fetch(campaignApiUrl);
+
+            if (apiResponse.ok) {
+                const liveCampaignData = await apiResponse.json();
+                if (liveCampaignData && !liveCampaignData.use_default) {
+                    campaignData = { ...campaignData, ...liveCampaignData }; // Mescla os dados da API
+                }
+            } else {
+                console.error(`[SRV-HOTSPOT] Erro ao buscar dados de campanha via API: ${apiResponse.statusText}`);
+            }
+            // --- FIM DA MODIFICAÇÃO FUTURA ---
+            */
+
             // --- LÓGICA NORMAL (EXISTENTE) ---
             console.log(`[SRV-HOTSPOT] Modo Normal para Roteador: ${routerName}`);
             const routerResult = await pool.query('SELECT id, group_id FROM routers WHERE name = $1', [routerName]);
@@ -137,53 +161,39 @@ app.get('/:page', async (req, res, next) => {
                     const templateResult = await pool.query(templateQuery, [activeCampaign.template_id]);
                     const templateData = templateResult.rows[0];
 
-                    if (templateData) {
-                        const admServerUrl = campaignData.admServerUrl;
+                    if (templateData) {                        
                         campaignData.use_default = false;
 
-                        // [CORRIGIDO] Adiciona a lógica para o banner de PRÉ-LOGIN
+                        // [MELHORIA] Passa apenas o caminho relativo. O template construirá a URL completa.
                         if (templateData.pre_login_banner_url) {
                             campaignData.preLoginBanner = {
-                                imageUrl: `${admServerUrl}${templateData.pre_login_banner_url}`,
+                                imageUrl: templateData.pre_login_banner_url,
                                 targetUrl: templateData.pre_login_target_url
                             };
                         }
 
-                        // [CORRIGIDO] Restaura a lógica para a página de LOGIN
-                        // e mantém a lógica para a página de STATUS.
+                        // [MELHORIA] Passa apenas os caminhos relativos para o template.
                         campaignData.template = {
-                            // --- Dados para a página de LOGIN ---
                             loginType: templateData.login_type,
                             primaryColor: templateData.primary_color,
                             fontColor: templateData.font_color,
                             fontSize: templateData.font_size,
                             formBackgroundColor: templateData.form_background_color,
                             fontFamily: templateData.font_family,
-                            backgroundUrl: templateData.login_background_url 
-                                ? (templateData.login_background_url.startsWith('http') 
-                                    ? templateData.login_background_url 
-                                    : `${admServerUrl}${templateData.login_background_url}`)
-                                : null,
-                            logoUrl: templateData.logo_url
-                                ? (templateData.logo_url.startsWith('http')
-                                    ? templateData.logo_url
-                                    : `${admServerUrl}${templateData.logo_url}`)
-                                : null,
-
-                            // --- Dados para a página de STATUS ---
-                            primaryColor: templateData.primary_color,
+                            backgroundUrl: templateData.login_background_url,
+                            logoUrl: templateData.logo_url,
                             statusTitle: templateData.status_title,
                             statusMessage: templateData.status_message,
-                            statusLogoUrl: (templateData.status_logo_url || templateData.logo_url) ? `${admServerUrl}${(templateData.status_logo_url || templateData.logo_url)}` : null,
+                            statusLogoUrl: templateData.status_logo_url || templateData.logo_url,
                             statusBgColor: templateData.status_bg_color,
-                            statusBgImageUrl: templateData.status_bg_image_url ? `${admServerUrl}${templateData.status_bg_image_url}` : null,
+                            statusBgImageUrl: templateData.status_bg_image_url,
                             statusH1FontSize: templateData.status_h1_font_size,
                             statusPFontSize: templateData.status_p_font_size,
                         };
 
                         if (templateData.post_login_banner_url) {
                             campaignData.postLoginBanner = {
-                                imageUrl: `${admServerUrl}${templateData.post_login_banner_url}`,
+                                imageUrl: templateData.post_login_banner_url,
                                 targetUrl: templateData.post_login_target_url
                             };
                         }
