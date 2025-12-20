@@ -1,8 +1,9 @@
 ** Sistema funcional. 
 ** Salva Nome do router (hotspot).
 ** Salva Data cadastro.
-** salva ultimo login.
+** salva ultimo login. [PENDENTE - A implementar via configuração do FreeRADIUS post-auth]
 ** tempo de 30 minutos.
+** Validação de e-mail avançada. [PENDENTE - Código implementado mas comentado no userController.js para uso futuro]
 ** cadastro e login simples.
 **sem implementação de banners pre e pos login, sem logo, sem videos, sem designer, postgresql, freeradius
 
@@ -23,7 +24,7 @@ Controlo de Sessão por Tempo: Utiliza os perfis de utilizador do FreeRADIUS e d
 
 Base de Dados Robusta: Armazena todos os dados dos utilizadores numa base de dados PostgreSQL local, oferecendo desempenho e fiabilidade.
 
-Registo de Atividade: Guarda a data de registo e atualiza a data do último login a cada nova sessão autenticada pelo FreeRADIUS.
+Registo de Atividade: Guarda a data de registo e [PENDENTE] atualiza a data do último login a cada nova sessão autenticada pelo FreeRADIUS. O foco atual é na melhoria das telas de cadastro, login e status.
 
 🚀 Arquitetura e Tecnologias
 Portal de Registo (Backend): Node.js, Express.js
@@ -69,4 +70,3 @@ Autenticação: JWT (JSON Web Tokens), bcrypt.js
 Frontend: HTML5, CSS3, JavaScript (Vanilla)
 
 Hardware: Router MikroTik com RouterOS
-

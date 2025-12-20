@@ -1,131 +1,370 @@
-/* Estilos Gerais e Variáveis de Fallback */
+/* =========================================
+   1. Reset e Variáveis Base
+   ========================================= */
+:root {
+    /* Variáveis padrão (serão sobrescritas pelo EJS se houver campanha) */
+    --login-bg-color: #f0f2f5;
+    --login-form-bg-color: #ffffff;
+    --login-font-color: #333333;
+    --login-button-color: #b403f2;
+    --base-font-size: 16px;
+    --font-family: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    /* As variáveis são definidas no .ejs e usadas aqui */
-    font-family: var(--font-family, 'Inter', sans-serif);
-    background-color: var(--login-bg-color, #f0f2f5);
+    font-family: var(--font-family);
+    background-color: var(--login-bg-color);
+    color: var(--login-font-color);
+    font-size: var(--base-font-size);
+    line-height: 1.5;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    color: var(--login-font-color, #333);
-    font-size: var(--base-font-size, 16px);
+    padding: 20px;
+    /* Background image é definido inline no HTML via EJS */
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
 }
 
-/* Container do Formulário */
+/* =========================================
+   2. Container do Formulário (Card Moderno)
+   ========================================= */
 .form-container {
-    background-color: var(--login-form-bg-color, #fff);
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: var(--login-form-bg-color);
     width: 100%;
-    max-width: 400px;
-}
-.form-container h1 {
-    font-size: 1.8em;
-    margin-bottom: 10px;
-    color: var(--login-font-color, #333);
-}
-.form-container p {
-    margin-bottom: 25px;
-    color: var(--login-font-color, #666);
-    font-size: 0.95em;
+    max-width: 420px;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
 }
 
-/* Grupos de Input */
+/* =========================================
+   3. Cabeçalho e Tipografia
+   ========================================= */
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header img {
+    max-width: 140px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.form-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: inherit;
+    letter-spacing: -0.5px;
+}
+
+.form-header p {
+    font-size: 1rem;
+    opacity: 0.8;
+    color: inherit;
+}
+
+/* =========================================
+   4. Inputs e Labels
+   ========================================= */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
 }
+
 .input-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 0.9em;
-    color: var(--login-font-color, #4a5568);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: inherit;
+    opacity: 0.9;
 }
+
 .input-group input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
-    font-size: 1em;
+    padding: 14px 16px;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+    color: #333;
 }
+
 .input-group input:focus {
     outline: none;
-    border-color: var(--login-button-color, #007bff);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: var(--login-button-color);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(180, 3, 242, 0.1); /* Anel de foco */
 }
 
-/* Feedback de Senha */
-.password-feedback {
-    font-size: 0.8em;
-    margin-top: 5px;
-}
-.password-feedback p {
-    margin: 0;
-    transition: color 0.3s;
-}
-.password-feedback .invalid {
-    color: #e53e3e; /* Vermelho para inválido */
-}
-.password-feedback .valid {
-    color: #38a169; /* Verde para válido */
-}
-
-/* Rodapé do Formulário */
-.form-footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9em;
-}
-.form-footer a {
-    color: var(--login-button-color, #007bff);
-    text-decoration: none;
-    font-weight: 500;
-}
-.form-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Botão */
-.btn{
-    padding: 12px;
-    border-radius: 4px;
-    cursor: pointer;
+/* =========================================
+   5. Botões
+   ========================================= */
+.btn {
+    display: block;
     width: 100%;
-    font-size: 1em;
+    padding: 16px;
+    background-color: var(--login-button-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
     font-weight: 600;
-    transition: background-color 0.3s, filter 0.3s;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 10px;
 }
 
-.btn:hover:not(:disabled) {
-    filter: brightness(90%);
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    opacity: 0.95;
+}
+
+.btn:active {
+    transform: translateY(0);
 }
 
 .btn:disabled {
-    background-color: #a0aec0; /* Cinza para desativado */
+    background-color: #ccc;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
 }
 
-/* Mensagens de Feedback */
+/* =========================================
+   6. Links e Rodapé
+   ========================================= */
+.form-footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.form-footer a {
+    color: var(--login-button-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.form-footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* =========================================
+   7. Checkboxes e Consentimento
+   ========================================= */
+.consent-group {
+    margin: 25px 0;
+    padding: 15px;
+    background-color: rgba(0,0,0,0.02);
+    border-radius: 12px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.checkbox-container:last-child {
+    margin-bottom: 0;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--login-button-color);
+    cursor: pointer;
+}
+
+/* =========================================
+   8. Mensagens e Feedback
+   ========================================= */
 .message {
     margin-top: 20px;
-    padding: 10px;
-    border-radius: 4px;
     text-align: center;
+    font-size: 0.9rem;
+    min-height: 20px;
     font-weight: 500;
-    display: none; /* Escondido por padrão */
-}
-.message.success {
-    background-color: #c6f6d5;
-    color: #2f855a;
-}
-.message.error {
-    background-color: #fed7d7;
-    color: #c53030;
 }
 
+.password-feedback {
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
+.password-feedback .invalid { color: #dc3545; }
+.password-feedback .valid { color: #28a745; }
+
+/* =========================================
+   9. Temas (Claro/Escuro) - Contraste
+   ========================================= */
+/* Tema Escuro */
+.form-container.theme-dark { color: #f1f1f1; }
+.form-container.theme-dark h1, 
+.form-container.theme-dark p, 
+.form-container.theme-dark label { color: #f1f1f1; }
+.form-container.theme-dark a { color: #a7c5ff; }
+.form-container.theme-dark a:hover { color: #d1e0ff; }
+.form-container.theme-dark .input-group input {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+.form-container.theme-dark .input-group input:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Tema Claro */
+.form-container.theme-light { color: #333; }
+.form-container.theme-light h1, 
+.form-container.theme-light p, 
+.form-container.theme-light label { color: #333; }
+.form-container.theme-light a { color: #0056b3; font-weight: 600; }
+
+/* =========================================
+   10. Preloader (Autocarro)
+   ========================================= */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, rgba(113, 35, 254, 1) 15%, rgba(180, 3, 242, 1) 100%);
+    transition: opacity 0.5s ease-out;
+}
+.bus {
+    width: 150px;
+    height: 80px;
+    position: relative;
+    animation: moveBus 2s ease-in-out infinite alternate;
+}
+.bus-body {
+    width: 100%;
+    height: 60px;
+    background-color: #b403f2;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+    bottom: 0;
+    border-top: 5px solid #fff;
+    border-left: 3px solid #fff;
+}
+.bus-window {
+    width: 30px;
+    height: 25px;
+    background-color: #cce7ff;
+    border-radius: 3px;
+    position: absolute;
+    top: 10px;
+}
+.bus-window:nth-child(1) { left: 15px; }
+.bus-window:nth-child(2) { left: 55px; }
+.bus-window:nth-child(3) { left: 95px; }
+.bus-wheel {
+    width: 30px;
+    height: 30px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -15px;
+    border: 3px solid #fff;
+    animation: spinWheel 0.8s linear infinite;
+}
+.bus-wheel.back { left: 20px; }
+.bus-wheel.front { right: 20px; }
+
+@keyframes moveBus {
+    from { transform: translateX(-20px); }
+    to { transform: translateX(20px); }
+}
+@keyframes spinWheel { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* =========================================
+   11. Banner Overlay
+   ========================================= */
+#banner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+.banner-content-wrapper {
+    position: relative;
+    display: inline-block;
+    animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+#close-banner-btn {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+#close-banner-btn:hover { transform: scale(1.1); }
+
+#banner-countdown {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    backdrop-filter: blur(4px);
+}
+
+/* =========================================
+   12. Responsividade
+   ========================================= */
+@media (max-width: 480px) {
+    .form-container {
+        padding: 30px 20px;
+        border-radius: 15px;
+    }
+    .form-header h1 { font-size: 1.5rem; }
+    body { padding: 15px; }
+}

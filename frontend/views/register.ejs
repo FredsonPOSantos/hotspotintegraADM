@@ -1,11 +1,11 @@
 <%
     const template = campaign.template || {};
 
-    const primaryColor = template.primaryColor || '#007bff';
-    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
+    const primaryColor = template.primaryColor || '#b403f2'
+    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#7123fe');
     const formBgColor = template.formBackgroundColor || '#ffffff';
     const bodyFontColor = template.fontColor || '#333333';
-    const bodyFontSize = template.fontSize || '16px';
+    const bodyFontSize = template.fontSize || '15px'; // [AJUSTE] Tamanho de fonte equilibrado para leitura e compactação
     const fontFamily = template.fontFamily || "'Inter', sans-serif";
     const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
 %>
@@ -13,6 +13,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Rota Hotspot</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --login-bg-color: <%= bodyBgColor %>;
@@ -23,23 +30,22 @@
             --font-family: <%= fontFamily %>;
         }
         body {
-            background-image: <%= bodyBgImage %>;
+            /* [AJUSTE] Usa um gradiente como fundo padrão, mantendo a imagem do template se existir. */
+            <% if (template.backgroundUrl) { %>
+                background-image: url(<%= template.backgroundUrl %>);
+            <% } else { %>
+                background: #7123FE; /* Fallback para navegadores que não suportam gradientes */
+                background: radial-gradient(circle, rgba(113, 35, 254, 1) 15%, rgba(180, 3, 242, 1) 100%);
+            <% } %>
             font-family: var(--font-family);
         }
     </style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Rota Hotspot</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="form-container">
         <div class="form-header" style="text-align: center;">
             <% if (template.logoUrl) { %>
-                <img src="<%= template.logoUrl %>" alt="Logótipo da Campanha" style="max-width: 150px; margin-bottom: 1rem;">
+                <img src="<%= template.logoUrl %>" alt="Logótipo da Campanha" style="max-width: 120px; margin-bottom: 1rem; padding: 5px;">
             <% } %>
             <h1>Crie sua Conta</h1>
             <p>Preencha os dados para se cadastrar.</p>
@@ -68,14 +74,14 @@
             </div>
 
             <!-- [NOVO] Bloco de consentimento com checkboxes -->
-            <div class="form-group" style="text-align: left; font-size: 0.9em; margin-top: 25px;">
+            <div class="form-group consent-group">
                 <div class="checkbox-container">
                     <input type="checkbox" id="termsCheckbox" name="terms">
                     <label for="termsCheckbox">
                         Eu li e aceito os <a href="/policy/terms" target="_blank" class="form-link">Termos e Condições</a> do serviço.
                     </label>
                 </div>
-                <div class="checkbox-container" style="margin-top: 10px;">
+                <div class="checkbox-container">
                     <input type="checkbox" id="marketingCheckbox" name="marketing">
                     <label for="marketingCheckbox">
                         Eu aceito participar de <a href="/policy/promotions" target="_blank" class="form-link">sorteios e promoções</a>.
@@ -93,6 +99,58 @@
         <div id="message" class="message"></div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            const passwordInput = document.getElementById('senha');
+            const submitButton = document.getElementById('submitButton');
+
+            // Função para verificar todas as condições e atualizar o estado do botão
+            function updateButtonState() {
+                // Condição 1: Senha tem pelo menos 6 caracteres
+                const isPasswordValid = passwordInput.value.length >= 6;
+                // Condição 2: Checkbox de termos está marcado
+                const areTermsAccepted = termsCheckbox.checked;
+
+                // Habilita o botão SOMENTE se AMBAS as condições forem atendidas
+                submitButton.disabled = !(isPasswordValid && areTermsAccepted);
+            }
+
+            // Adiciona "escutadores" de eventos para os campos relevantes
+            passwordInput.addEventListener('input', updateButtonState);
+            termsCheckbox.addEventListener('change', updateButtonState);
+
+            /**
+             * [NOVO] Função para detetar a cor de fundo do formulário e aplicar uma classe
+             * para garantir que a cor do texto tenha um contraste adequado.
+             */
+            function setContrastColor() {
+                const formContainer = document.querySelector('.form-container');
+                if (!formContainer) return;
+
+                // Obtém a cor de fundo computada do formulário
+                const bgColor = window.getComputedStyle(formContainer).backgroundColor;
+
+                // Função para calcular a luminância de uma cor RGB
+                function getLuminance(color) {
+                    // Extrai os valores R, G, B da string 'rgb(r, g, b)'
+                    const rgb = color.match(/\d+/g);
+                    if (!rgb) return 180; // Assume um fundo claro se não conseguir analisar a cor
+
+                    // Fórmula de luminância percebida
+                    return (0.299 * parseInt(rgb[0]) + 0.587 * parseInt(rgb[1]) + 0.114 * parseInt(rgb[2]));
+                }
+
+                const luminance = getLuminance(bgColor);
+
+                // Um limiar comum é 149. Abaixo disso, o fundo é considerado "escuro".
+                formContainer.classList.add(luminance < 149 ? 'theme-dark' : 'theme-light');
+            }
+
+            // Executa a função para definir o tema de contraste
+            setContrastColor();
+        });
+    </script>
     <script src="js/utils.js"></script>
     <script src="js/register.js"></script>
 </body>

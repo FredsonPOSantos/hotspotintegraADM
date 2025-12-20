@@ -13,7 +13,7 @@
     };
 
     const template = campaign.template || {};
-    const primaryColor = template.primaryColor || '#007bff';
+    const primaryColor = template.primaryColor || '#b403f2'; // [AJUSTE] Cor padrão alinhada com a de cadastro.
     const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#f0f2f5');
     const formBgColor = template.formBackgroundColor || '#ffffff';
     const bodyFontColor = template.fontColor || '#333333';
@@ -31,6 +31,14 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rota Hotspot</title>
+    <!-- Link para a folha de estilos CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <%# 2. Bloco de Estilos: Usa as variáveis definidas acima para gerar o CSS %>
     <style>
         :root {
@@ -45,61 +53,19 @@
             background-image: <%= bodyBgImage %>;
             font-family: var(--font-family);
         }
-        /* Estilos para o overlay do banner */
-        #banner-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        /* [NOVO] Contêiner para a imagem e os controles */
-        .banner-content-wrapper {
-            position: relative; /* Essencial para posicionar os filhos (botão e contador) */
-            display: inline-block; /* Ajusta o wrapper ao tamanho da imagem */
-        }
-        /* Estilo para o botão de fechar (X) */
-        #close-banner-btn {
-            position: absolute;
-            top: 15px;
-            right: 25px;
-            color: #fff;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        #close-banner-btn:hover {
-            color: #ccc;
-        }
-        /* Estilo para o contador regressivo */
-        #banner-countdown {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
     </style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Rota Hotspot</title>
-    <!-- Link para a folha de estilos CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- [NOVO] Preloader de Autocarro -->
+    <div id="preloader">
+        <div class="bus">
+            <div class="bus-body">
+                <div class="bus-window"></div><div class="bus-window"></div><div class="bus-window"></div>
+            </div>
+            <div class="bus-wheel back"></div><div class="bus-wheel front"></div>
+        </div>
+    </div>
+
     <%# 3. Lógica do Banner Overlay %>
     <% if (!campaign.use_default && campaign.preLoginBanner && campaign.preLoginBanner.imageUrl) { %>
         <div id="banner-overlay">
@@ -114,7 +80,7 @@
         </div>
     <% } %>
 
-    <div class="form-container">
+    <div class="form-container" style="visibility: hidden;">
         <div class="form-header" style="text-align: center;">
             <% if (logoUrl) { %>
                 <img src="<%= logoUrl %>" alt="Logótipo da Campanha" style="max-width: 150px; margin-bottom: 1rem;">
@@ -144,6 +110,22 @@
     </div>
 
     <script>
+        // [NOVO] Lógica do Preloader
+        // O evento 'load' espera que TUDO (imagens, css, etc.) seja carregado.
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            const formContainer = document.querySelector('.form-container');
+
+            // Remove o preloader assim que a página carrega completamente
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+                preloader.style.display = 'none';
+                formContainer.style.visibility = 'visible';
+                // Adiciona uma animação suave de entrada ao formulário
+                formContainer.style.animation = 'fadeIn 0.6s ease forwards';
+            }, 500); // Tempo da transição de opacidade (sincronizado com o CSS)
+        });
+
         // Passa os dados da campanha renderizados pelo servidor para o JavaScript do lado do cliente
         const bannerData = <%- JSON.stringify(campaign.preLoginBanner || null) %>;
 
@@ -155,7 +137,7 @@
             if (overlay && bannerData && bannerData.imageUrl) {
                 const closeBtn = document.getElementById('close-banner-btn'); // O botão 'X'
                 const countdownEl = document.getElementById('banner-countdown'); // Onde o contador aparece
-
+                
                 formContainer.style.visibility = 'hidden'; // Esconde o formulário para o banner aparecer
                 let timeLeft = bannerData.displayTime || 5;
                 let countdownInterval;
@@ -184,6 +166,30 @@
                     closeBtn.addEventListener('click', closeBanner);
                 }
             }
+
+            /**
+             * [NOVO] Função para detetar a cor de fundo do formulário e aplicar uma classe
+             * para garantir que a cor do texto tenha um contraste adequado.
+             */
+            function setContrastColor() {
+                if (!formContainer) return;
+
+                // Obtém a cor de fundo computada do formulário
+                const bgColor = window.getComputedStyle(formContainer).backgroundColor;
+
+                // Função para calcular a luminância de uma cor RGB
+                function getLuminance(color) {
+                    const rgb = color.match(/\d+/g);
+                    if (!rgb) return 180; // Assume um fundo claro se não conseguir analisar a cor
+                    return (0.299 * parseInt(rgb[0]) + 0.587 * parseInt(rgb[1]) + 0.114 * parseInt(rgb[2]));
+                }
+
+                const luminance = getLuminance(bgColor);
+                formContainer.classList.add(luminance < 149 ? 'theme-dark' : 'theme-light');
+            }
+
+            // Executa a função para definir o tema de contraste
+            setContrastColor();
         });
     </script>
     <script src="js/utils.js"></script>
