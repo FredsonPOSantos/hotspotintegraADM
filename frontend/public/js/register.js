@@ -89,6 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // [CRÍTICO] Validação para garantir que a URL da API está disponível.
+        // Se esta variável não for definida pelo template do servidor, a requisição falhará.
+        if (typeof window.API_BASE_URL === 'undefined' || !window.API_BASE_URL) {
+            displayMessage('Erro de configuração: URL da API não encontrada. Contacte o suporte.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Cadastrar';
+            return;
+        }
+
         // Monta o corpo da requisição com os dados a serem enviados para o backend
         const userData = {
             nomeCompleto,

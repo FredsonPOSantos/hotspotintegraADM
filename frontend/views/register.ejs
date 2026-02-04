@@ -16,6 +16,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Rota Hotspot</title>
+    <!-- [CRÍTICO] Injeta a URL base da API para os scripts do cliente (register.js, campaign-loader.js) -->
+    <script>
+        const API_BASE_URL = '<%= campaign.admServerUrl %>';
+    </script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,7 +155,6 @@
             setContrastColor();
         });
     </script>
-    <script src="js/utils.js"></script>
     <script src="js/register.js"></script>
 </body>
 </html>

@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
  * [ALTERADO] Busca e aplica a campanha, seja ela ativa (via routerName) ou uma pré-visualização (via previewCampaignId).
  */
 async function loadCampaign() {
+    // [CORRIGIDO] Validação movida para o início da função.
+    // Se a URL base da API não for injetada pelo servidor, nada mais pode funcionar.
+    if (typeof window.API_BASE_URL === 'undefined' || !window.API_BASE_URL) {
+        console.error('[Campaign Loader] A variável global `API_BASE_URL` não está definida. Não é possível carregar campanhas dinâmicas. Verifique se o template EJS está a injetá-la corretamente.');
+        return;
+    }
+
     // 1. Verifica se estamos em modo de pré-visualização
     const previewCampaignId = getUrlParameter('previewCampaignId');
     const routerName = getUrlParameter('routerName');
@@ -39,12 +46,6 @@ async function loadCampaign() {
         console.warn('[Campaign Loader] Nenhum parâmetro (routerName ou previewCampaignId) encontrado. A carregar layout padrão.');
         applyDefaultStylesFromApi(); // Tenta buscar as configurações de aparência padrão
         return; // Interrompe a execução
-    }
-
-    // Validação para garantir que a variável global foi injetada pelo EJS.
-    if (typeof window.API_BASE_URL === 'undefined' || !window.API_BASE_URL) {
-        console.error('[Campaign Loader] A variável global `API_BASE_URL` não está definida. Não é possível carregar campanhas dinâmicas. Verifique se o template EJS está a injetá-la corretamente.');
-        return;
     }
 
     try {

@@ -34,6 +34,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Rota Hotspot</title>
+    <!-- [CRÍTICO] Injeta a URL base da API para os scripts do cliente (register.js, campaign-loader.js) -->
+    <script>
+        const API_BASE_URL = '<%= campaign.admServerUrl %>';
+    </script>
     <!-- Link para a folha de estilos CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -192,7 +196,6 @@
             setContrastColor();
         });
     </script>
-    <script src="js/utils.js"></script>
     <script src="js/login.js"></script> 
 </body>
 </html>
