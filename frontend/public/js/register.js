@@ -1,5 +1,17 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * @desc    Busca o valor de um parâmetro específico na URL.
+     * @param   {string} name - O nome do parâmetro a ser buscado (ex: 'mac').
+     * @returns {string|null} - Retorna o valor do parâmetro ou null se não for encontrado.
+     */
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        const results = regex.exec(location.search);
+        return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
     // --- LÓGICA PARA MANTER OS PARÂMETROS NA NAVEGAÇÃO ---
     const loginLink = document.getElementById('loginLink');
     if (loginLink) {
@@ -91,9 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Envia a requisição para a API de registo no servidor ADM.
-            // A variável global API_BASE_URL é definida diretamente no template .ejs
-            // antes de este script ser carregado.
-            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+            // [CORRIGIDO] A API de registo está no servidor de Administração (ADM), não neste servidor de portal.
+            // O código deve usar a variável global `API_BASE_URL` que é injetada pelo servidor
+            // e aponta para o servidor ADM correto.
+            const response = await fetch(`${window.API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

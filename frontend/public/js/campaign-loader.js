@@ -1,8 +1,10 @@
 // Ficheiro: rota-hotspot-WSL-Debian-ap-main/frontend/public/js/campaign-loader.js
 
-// URL base da API do Painel de Administração.
-// Aponta para o servidor ADM (SRV-Portal) na porta 3000
-const API_BASE_URL = 'http://10.0.0.46:3000';
+// [CORRIGIDO] A URL base da API não deve ser fixa no código (hardcoded).
+
+// [MELHORIA] Este script agora espera que uma variável global `API_BASE_URL` seja definida no HTML
+// pelo template do lado do servidor (EJS). Isto torna o código flexível para diferentes ambientes.
+// O servidor Node.js já passa esta URL como `campaign.admServerUrl`.
 
 /**
  * Função principal que é executada quando a página termina de carregar.
@@ -26,17 +28,23 @@ async function loadCampaign() {
     if (previewCampaignId) {
         // Modo de Pré-visualização
         console.log(`[Campaign Loader] Modo de Pré-visualização Ativado para Campanha ID: ${previewCampaignId}`);
-        apiUrl = `${API_BASE_URL}/api/public/campaign-preview?campaignId=${previewCampaignId}`;
+        apiUrl = `${window.API_BASE_URL}/api/public/campaign-preview?campaignId=${previewCampaignId}`;
         isPreview = true;
     } else if (routerName) {
         // Modo Normal (Produção)
         console.log(`[Campaign Loader] Modo Normal. Buscando campanha para o roteador: ${routerName}`);
-        apiUrl = `${API_BASE_URL}/api/public/active-campaign?routerName=${routerName}`;
+        apiUrl = `${window.API_BASE_URL}/api/public/active-campaign?routerName=${routerName}`;
     } else {
         // Nenhum parâmetro encontrado, carrega o layout padrão
         console.warn('[Campaign Loader] Nenhum parâmetro (routerName ou previewCampaignId) encontrado. A carregar layout padrão.');
         applyDefaultStylesFromApi(); // Tenta buscar as configurações de aparência padrão
         return; // Interrompe a execução
+    }
+
+    // Validação para garantir que a variável global foi injetada pelo EJS.
+    if (typeof window.API_BASE_URL === 'undefined' || !window.API_BASE_URL) {
+        console.error('[Campaign Loader] A variável global `API_BASE_URL` não está definida. Não é possível carregar campanhas dinâmicas. Verifique se o template EJS está a injetá-la corretamente.');
+        return;
     }
 
     try {
@@ -142,7 +150,7 @@ function renderBanner(banner, containerId, altText) {
 
     const container = document.getElementById(containerId);
     if (container) {
-        const fullImageUrl = `${API_BASE_URL}${banner.imageUrl}`;
+        const fullImageUrl = `${window.API_BASE_URL}${banner.imageUrl}`;
         let bannerHTML = `<img src="${fullImageUrl}" alt="${altText}" style="width: 100%; height: auto; border-radius: 8px;">`;
         if (banner.targetUrl) {
             bannerHTML = `<a href="${banner.targetUrl}" target="_blank">${bannerHTML}</a>`;
@@ -166,7 +174,7 @@ function renderBanners(banners, containerId, altText) {
     if (container) {
         let allBannersHTML = '';
         banners.forEach(banner => {
-            const fullImageUrl = `${API_BASE_URL}${banner.imageUrl}`;
+            const fullImageUrl = `${window.API_BASE_URL}${banner.imageUrl}`;
             let bannerHTML = `<img src="${fullImageUrl}" alt="${altText}" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px;">`;
             if (banner.targetUrl) {
                 bannerHTML = `<a href="${banner.targetUrl}" target="_blank">${bannerHTML}</a>`;
@@ -218,7 +226,12 @@ function handleLoginType(loginType) {
  */
 async function applyDefaultStylesFromApi() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/settings/general`);
+        // A validação deve ocorrer antes da chamada à API.
+        if (typeof window.API_BASE_URL === 'undefined' || !window.API_BASE_URL) {
+            // Não tenta buscar se a URL não estiver definida
+            return;
+        }
+        const response = await fetch(`${window.API_BASE_URL}/api/settings/general`);
         if (!response.ok) return;
         const settings = await response.json();
         applyDefaultStyles(settings);

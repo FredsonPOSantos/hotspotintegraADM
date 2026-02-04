@@ -1,5 +1,17 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * @desc    Busca o valor de um parâmetro específico na URL.
+     * @param   {string} name - O nome do parâmetro a ser buscado (ex: 'mac').
+     * @returns {string|null} - Retorna o valor do parâmetro ou null se não for encontrado.
+     */
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        const results = regex.exec(location.search);
+        return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
     // --- LÓGICA DE PRÉ-VISUALIZAÇÃO ---
     // Esta verificação é redundante se o campaign-loader.js já estiver a fazer o trabalho,
     // mas é uma boa prática de segurança para garantir que o formulário seja desativado.
