@@ -2,7 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fetch = require('node-fetch'); // [NOVO] Para fazer chamadas de API
-require('dotenv').config(); // Carrega as variáveis de ambiente
+
+// [CORRIGIDO] Carrega as variáveis de ambiente do ficheiro .env localizado na pasta 'backend'.
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+// [CRÍTICO] Mapeia as variáveis do ficheiro .env (com prefixo DB_) para as variáveis
+// que a biblioteca 'pg' espera (com prefixo PG_). Isto permite que a ligação à base de dados
+// funcione sem alterar o código de conexão.
+process.env.PGHOST = process.env.DB_HOST;
+process.env.PGUSER = process.env.DB_USER;
+process.env.PGPASSWORD = process.env.DB_PASSWORD;
+process.env.PGDATABASE = process.env.DB_DATABASE;
+process.env.PGPORT = process.env.DB_PORT;
 
 // Inicializa a ligação à base de dados PostgreSQL
 // [CORRIGIDO] Aponta para o caminho de conexão correto dentro da estrutura do projeto Hotspot.
