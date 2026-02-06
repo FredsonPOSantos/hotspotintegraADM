@@ -11,7 +11,8 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "production",
-        PORT: 3001,
+        // [CORRIGIDO] Porta alterada para 8081 para ser compatível com a configuração dos MikroTiks em produção.
+        PORT: 8081,
 
         // --- Conexão com o Servidor Administrador (10.0.0.47) ---
         // IP do servidor que gere campanhas e registo de utilizadores.
