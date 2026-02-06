@@ -17,8 +17,8 @@
     <script>
         // Função para construir o URL de redirecionamento de forma segura
         function redirectToPortal() {
-            // [CORRIGIDO] Base do URL do nosso servidor do portal, que corre na porta 3001.
-            const baseUrl = 'http://10.0.0.46:3001/index.html';
+            // [CORRIGIDO] Base do URL do nosso servidor frontend (SRV-Portal na porta 8081)
+            const baseUrl = 'http://10.0.0.46:8081/index.html';
             
             // Variáveis que o MikroTik substitui
             const mac = '$(mac)';

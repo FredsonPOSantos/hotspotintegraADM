@@ -1,16 +1,6 @@
 // Aguarda o carregamento completo do DOM antes de executar o script
 document.addEventListener('DOMContentLoaded', () => {
-    /**
-     * @desc    Busca o valor de um parâmetro específico na URL.
-     * @param   {string} name - O nome do parâmetro a ser buscado (ex: 'mac').
-     * @returns {string|null} - Retorna o valor do parâmetro ou null se não for encontrado.
-     */
-    function getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-        const results = regex.exec(location.search);
-        return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
-    }
+    // [REMOVIDO] A função getUrlParameter foi removida deste ficheiro, pois já existe no utils.js, que é carregado antes.
 
     // --- LÓGICA PARA MANTER OS PARÂMETROS NA NAVEGAÇÃO ---
     const loginLink = document.getElementById('loginLink');
@@ -111,32 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            // Envia a requisição para a API de registo no servidor ADM.
-            // [CORRIGIDO] A API de registo está no servidor de Administração (ADM), não neste servidor de portal.
-            // O código deve usar a variável global `API_BASE_URL` que é injetada pelo servidor
-            // e aponta para o servidor ADM correto.
-            const response = await fetch(`${window.API_BASE_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-            });
-
-            // Converte a resposta da API para JSON
-            const data = await response.json();
-
-            // Verifica se a requisição foi bem-sucedida
-            if (response.ok) {
-                displayMessage(data.message || 'Cadastro realizado com sucesso! Redirecionando para o login...', 'success');
-                // Aguarda 2 segundos e redireciona o usuário para a página de login, mantendo os parâmetros da URL
-                setTimeout(() => {
-                    window.location.href = 'index.html' + location.search;
-                }, 2000);
-            } else {
-                // Se houve um erro, exibe a mensagem retornada pela API
-                throw new Error(data.message || 'Ocorreu um erro no cadastro.');
-            }
+            // [REFEITO] Usa a função centralizada 'apiRequest' do utils.js
+            const data = await apiRequest('/api/auth/register', 'POST', userData);
+            
+            displayMessage(data.message || 'Cadastro realizado com sucesso! Redirecionando para o login...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html' + location.search;
+            }, 2000);
         } catch (error) {
             // Em caso de erro na comunicação com a API, exibe uma mensagem genérica
             displayMessage(error.message, 'error');

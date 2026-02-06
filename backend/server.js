@@ -2,19 +2,27 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fetch = require('node-fetch'); // [NOVO] Para fazer chamadas de API
+require('dotenv').config(); // Carrega as variáveis de ambiente
+// [CRÍTICO] Mapeia as variáveis de ambiente do ecosystem.config.js (com prefixo DB_)
+// para as variáveis que a biblioteca 'pg' espera (com prefixo PG_).
+// Isto permite que a ligação à base de dados funcione em produção com PM2.
+if (process.env.DB_HOST) {
+    process.env.PGHOST = process.env.DB_HOST;
+    process.env.PGUSER = process.env.DB_USER;
+    process.env.PGPASSWORD = process.env.DB_PASSWORD;
+    process.env.PGDATABASE = process.env.DB_DATABASE;
+    process.env.PGPORT = process.env.DB_PORT;
+}
 
-// [CORRIGIDO] Carrega as variáveis de ambiente do ficheiro .env localizado na pasta 'backend'.
-require('dotenv').config({ path: path.join(__dirname, '.env') });
-
-// [CRÍTICO] Mapeia as variáveis do ficheiro .env (com prefixo DB_) para as variáveis
-// que a biblioteca 'pg' espera (com prefixo PG_). Isto permite que a ligação à base de dados
-// funcione sem alterar o código de conexão.
-process.env.PGHOST = process.env.DB_HOST;
-process.env.PGUSER = process.env.DB_USER;
-process.env.PGPASSWORD = process.env.DB_PASSWORD;
-process.env.PGDATABASE = process.env.DB_DATABASE;
-process.env.PGPORT = process.env.DB_PORT;
-
+// [MELHORIA] Validação para garantir que as variáveis de ambiente essenciais da DB estão definidas.
+// Isto irá falhar rapidamente com uma mensagem clara se o ficheiro .env ou ecosystem.config.js não for carregado corretamente.
+const requiredDbEnvVars = ['PGHOST', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'PGPORT'];
+const missingDbVar = requiredDbEnvVars.find(v => !process.env[v]);
+if (missingDbVar) {
+    console.error(`❌ [SRV-HOTSPOT] ERRO CRÍTICO: A variável de ambiente da base de dados '${missingDbVar.replace('PG','DB_')}' não está definida. Verifique o seu ficheiro .env ou ecosystem.config.js.`);
+    process.exit(1);
+}
+ 
 // Inicializa a ligação à base de dados PostgreSQL
 // [CORRIGIDO] Aponta para o caminho de conexão correto dentro da estrutura do projeto Hotspot.
 const pool = require('./src/database/connection');
@@ -72,14 +80,17 @@ app.get('/', (req, res) => {
 app.get('/:page', async (req, res, next) => {
     const { routerName, previewCampaignId } = req.query; // [MODIFICADO] Captura ambos os parâmetros
     const requestedPage = req.params.page;
-    
-    // Validação para garantir que apenas as páginas que queremos renderizar dinamicamente são tratadas aqui.
-    if (requestedPage !== 'index.html' && requestedPage !== 'register.html' && requestedPage !== 'success.html') {
-        // Se não for uma das nossas páginas, passa para o próximo middleware (que pode ser um 404).
+
+    // [MELHORIA] Remove a extensão .html (se existir) para obter o nome base da página.
+    const pageToRender = requestedPage.replace('.html', ''); // 'index', 'register', ou 'success'
+
+    // [MELHORIA] Valida se o nome base da página está na lista de páginas permitidas.
+    // Isto torna a rota mais flexível, aceitando tanto /index.html como /index.
+    const allowedPages = ['index', 'register', 'success'];
+    if (!allowedPages.includes(pageToRender)) {
+        // Se não for uma das nossas páginas dinâmicas, passa para o próximo middleware (ex: servir ficheiros estáticos).
         return next();
     }
-
-    const pageToRender = requestedPage.replace('.html', ''); // 'index' ou 'register'
 
     console.log(`[SRV-HOTSPOT] Recebida requisição para renderizar a página: '${pageToRender}.ejs'`);
 
@@ -158,15 +169,14 @@ app.get('/:page', async (req, res, next) => {
                     const activeCampaign = campaignResult.rows[0];
                     console.log(`[SRV-HOTSPOT] Campanha ativa encontrada: "${activeCampaign.name}"`);
 
+                    // [REFEITO] A lógica foi separada para maior clareza e alinhamento com o resto do sistema.
+                    // 1. Busca o template e seu banner de pré-login associado.
                     const templateQuery = `
                         SELECT t.*, 
                                b_pre.image_url AS pre_login_banner_url,
-                               b_pre.target_url AS pre_login_target_url,
-                               b_post.image_url AS post_login_banner_url,
-                               b_post.target_url AS post_login_target_url
+                               b_pre.target_url AS pre_login_target_url
                         FROM templates t
                         LEFT JOIN banners AS b_pre ON t.prelogin_banner_id = b_pre.id AND b_pre.type = 'pre-login' AND b_pre.is_active = true
-                        LEFT JOIN banners AS b_post ON t.postlogin_banner_id = b_post.id AND b_post.type = 'post-login'
                         WHERE t.id = $1;
                     `;
                     const templateResult = await pool.query(templateQuery, [activeCampaign.template_id]);
@@ -175,7 +185,7 @@ app.get('/:page', async (req, res, next) => {
                     if (templateData) {                        
                         campaignData.use_default = false;
 
-                        // [MELHORIA] Passa apenas o caminho relativo. O template construirá a URL completa.
+                        // Popula o banner de pré-login (associado ao template)
                         if (templateData.pre_login_banner_url) {
                             campaignData.preLoginBanner = {
                                 imageUrl: templateData.pre_login_banner_url,
@@ -183,7 +193,7 @@ app.get('/:page', async (req, res, next) => {
                             };
                         }
 
-                        // [MELHORIA] Passa apenas os caminhos relativos para o template.
+                        // Popula os dados do template
                         campaignData.template = {
                             loginType: templateData.login_type,
                             primaryColor: templateData.primary_color,
@@ -202,10 +212,21 @@ app.get('/:page', async (req, res, next) => {
                             statusPFontSize: templateData.status_p_font_size,
                         };
 
-                        if (templateData.post_login_banner_url) {
+                        // 2. Busca os banners de pós-login (associados à CAMPANHA, não ao template)
+                        const postLoginBannersQuery = `
+                            SELECT b.image_url, b.target_url
+                            FROM campaign_banners cb
+                            JOIN banners b ON cb.banner_id = b.id
+                            WHERE cb.campaign_id = $1 AND b.type = 'post-login' AND b.is_active = true
+                            ORDER BY cb.placeholder_id ASC;
+                        `;
+                        const postLoginBannersResult = await pool.query(postLoginBannersQuery, [activeCampaign.id]);
+
+                        // A página de sucesso atual só suporta um banner. Usamos o primeiro encontrado.
+                        if (postLoginBannersResult.rows.length > 0) {
                             campaignData.postLoginBanner = {
-                                imageUrl: templateData.post_login_banner_url,
-                                targetUrl: templateData.post_login_target_url
+                                imageUrl: postLoginBannersResult.rows[0].image_url,
+                                targetUrl: postLoginBannersResult.rows[0].target_url
                             };
                         }
                     }

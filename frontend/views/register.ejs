@@ -1,13 +1,24 @@
 <%
+    // [CORRIGIDO] Adiciona a mesma lógica de `index.ejs` para garantir que as URLs de assets sejam absolutas.
+    const ASSETS_BASE_URL = campaign.admServerUrl || 'http://localhost:3000';
+
+    // Função auxiliar para garantir que a URL seja absoluta
+    const getAssetUrl = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path; // Já é uma URL completa
+        return `${ASSETS_BASE_URL}${path}`;
+    };
+
     const template = campaign.template || {};
 
     const primaryColor = template.primaryColor || '#b403f2'
-    const bodyBgColor = template.backgroundUrl ? 'transparent' : (template.primaryColor || '#7123fe');
+    const bodyBgColor = getAssetUrl(template.backgroundUrl) ? 'transparent' : (template.primaryColor || '#7123fe');
     const formBgColor = template.formBackgroundColor || '#ffffff';
     const bodyFontColor = template.fontColor || '#333333';
     const bodyFontSize = template.fontSize || '15px'; // [AJUSTE] Tamanho de fonte equilibrado para leitura e compactação
     const fontFamily = template.fontFamily || "'Inter', sans-serif";
-    const bodyBgImage = template.backgroundUrl ? `url(${template.backgroundUrl})` : 'none';
+    const bodyBgImage = getAssetUrl(template.backgroundUrl) ? `url(${getAssetUrl(template.backgroundUrl)})` : 'none';
+    const logoUrl = getAssetUrl(template.logoUrl);
 %>
 
 <!DOCTYPE html>
@@ -18,7 +29,8 @@
     <title>Cadastro - Rota Hotspot</title>
     <!-- [CRÍTICO] Injeta a URL base da API para os scripts do cliente (register.js, campaign-loader.js) -->
     <script>
-        const API_BASE_URL = '<%= campaign.admServerUrl %>';
+        // Esta variável é usada pelos scripts para saber onde o servidor de administração está.
+        window.API_BASE_URL = '<%= campaign.admServerUrl %>';
     </script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,8 +47,8 @@
         }
         body {
             /* [AJUSTE] Usa um gradiente como fundo padrão, mantendo a imagem do template se existir. */
-            <% if (template.backgroundUrl) { %>
-                background-image: url(<%= template.backgroundUrl %>);
+            <% if (getAssetUrl(template.backgroundUrl)) { %>
+                background-image: url(<%= getAssetUrl(template.backgroundUrl) %>);
             <% } else { %>
                 background: #7123FE; /* Fallback para navegadores que não suportam gradientes */
                 background: radial-gradient(circle, rgba(113, 35, 254, 1) 15%, rgba(180, 3, 242, 1) 100%);
@@ -48,8 +60,8 @@
 <body>
     <div class="form-container">
         <div class="form-header" style="text-align: center;">
-            <% if (template.logoUrl) { %>
-                <img src="<%= template.logoUrl %>" alt="Logótipo da Campanha" style="max-width: 120px; margin-bottom: 1rem; padding: 5px;">
+            <% if (logoUrl) { %>
+                <img src="<%= logoUrl %>" alt="Logótipo da Campanha" style="max-width: 120px; margin-bottom: 1rem; padding: 5px;">
             <% } %>
             <h1>Crie sua Conta</h1>
             <p>Preencha os dados para se cadastrar.</p>
@@ -155,6 +167,7 @@
             setContrastColor();
         });
     </script>
+    <script src="js/utils.js"></script>
     <script src="js/register.js"></script>
 </body>
 </html>

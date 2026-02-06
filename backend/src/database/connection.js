@@ -1,16 +1,16 @@
 const { Pool } = require('pg');
-require('dotenv').config();
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-});
+// [MELHORIA] O construtor do Pool() lê automaticamente as variáveis de ambiente PG*
+// (PGHOST, PGUSER, PGPASSWORD, etc.). Como o nosso server.js já faz o mapeamento
+// de DB_* para PG_*, não precisamos de passar os parâmetros aqui.
+// Isso torna o código mais limpo e segue a convenção da biblioteca 'pg'.
+const pool = new Pool();
 
+// [MANUTENÇÃO] Este "ouvinte" de erros é uma boa prática. Ele captura erros
+// em clientes inativos na pool e encerra o processo para que o PM2 possa reiniciá-lo,
+// garantindo a estabilidade do servidor.
 pool.on('error', (err) => {
-    console.error('Erro inesperado no cliente da base de dados', err);
+    console.error('❌ [DB-POOL] Erro inesperado no cliente da base de dados (idle client). A reiniciar...', err);
     process.exit(-1);
 });
 
