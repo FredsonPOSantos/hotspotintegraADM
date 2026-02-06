@@ -49,22 +49,33 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(senha, salt);
 
-        // Insere os dados de autenticação na tabela 'radcheck'
-        // O FreeRADIUS usará estes dados para validar o login
-        const radCheckQuery = `
-            INSERT INTO radcheck (username, attribute, op, value) 
-            VALUES ($1, 'Crypt-Password', ':=', $2)
-        `;
-        await db.query(radCheckQuery, [email, hashedPassword]);
+        // [MELHORIA] Usa uma transação para garantir que ambas as inserções ocorram ou nenhuma ocorra.
+        // Isto previne a criação de um utilizador "órfão" na tabela radcheck se a inserção em userdetails falhar.
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
 
-        // Insere os dados adicionais na nossa tabela 'userdetails'
-        // [CORRIGIDO] A query foi ajustada para corresponder à estrutura da tabela da base de dados,
-        // utilizando 'terms_accepted_at' e 'accepts_marketing'.
-        const userDetailsQuery = `
-            INSERT INTO userdetails (username, nome_completo, telefone, mac_address, router_name, terms_accepted_at, accepts_marketing) 
-            VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-        `;
-        await db.query(userDetailsQuery, [email, nomeCompleto, telefone, mac, routerName, !!accepts_marketing]);
+            // 1. Insere os dados de autenticação na tabela 'radcheck'
+            const radCheckQuery = `
+                INSERT INTO radcheck (username, attribute, op, value) 
+                VALUES ($1, 'Crypt-Password', ':=', $2)
+            `;
+            await client.query(radCheckQuery, [email, hashedPassword]);
+
+            // 2. Insere os dados adicionais na nossa tabela 'userdetails'
+            const userDetailsQuery = `
+                INSERT INTO userdetails (username, nome_completo, telefone, mac_address, router_name, terms_accepted_at, accepts_marketing) 
+                VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+            `;
+            await client.query(userDetailsQuery, [email, nomeCompleto, telefone, mac, routerName, !!accepts_marketing]);
+
+            await client.query('COMMIT');
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e; // Re-lança o erro para ser capturado pelo catch externo
+        } finally {
+            client.release();
+        }
 
         res.status(201).json({
             message: 'Utilizador registado com sucesso!',
@@ -72,8 +83,7 @@ const registerUser = async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao registar utilizador:', error);
-        // Em caso de erro, é uma boa prática remover o utilizador da 'radcheck' se ele foi inserido
-        await db.query('DELETE FROM radcheck WHERE username = $1', [email]);
+        // [REMOVIDO] A limpeza manual não é mais necessária, pois o ROLLBACK da transação já tratou disso.
         res.status(500).json({ message: 'Erro interno do servidor.' });
     }
 };
