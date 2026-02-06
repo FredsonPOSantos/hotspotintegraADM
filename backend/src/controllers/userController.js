@@ -27,22 +27,19 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'É obrigatório aceitar os Termos e Condições para se registar.' });
         }
 
-        /* 
-        // [PENDENTE] Validação de E-mail Avançada
+        // [ATIVADO] Validação de E-mail Avançada
         // Verifica se o e-mail é real, se o domínio existe e se não é temporário.
         // Requer instalar o pacote: npm install deep-email-validator
         const { valid, reason, validators } = await emailValidator.validate(email);
         if (!valid) {
             let errorMessage = 'O endereço de e-mail fornecido não é válido.';
-            if (reason === 'disposable') errorMessage = 'E-mails temporários não são permitidos.';
-            if (reason === 'typo') errorMessage = `Você quis dizer ${validators.typo?.source}?`;
-            if (reason === 'mx') errorMessage = 'O domínio do e-mail não existe ou não pode receber mensagens.';
+            if (reason === 'disposable') { errorMessage = 'E-mails temporários não são permitidos.'; }
+            else if (reason === 'typo' && validators.typo?.did_you_mean) { errorMessage = `Você quis dizer ${validators.typo.did_you_mean}?`; }
+            else if (reason === 'mx') { errorMessage = 'O domínio do e-mail não existe ou não pode receber mensagens.'; }
             
             return res.status(400).json({ message: errorMessage });
         }
 
-        // Verifica se o utilizador (e-mail) já existe na tabela radcheck
-        */
         const userExists = await db.query('SELECT username FROM radcheck WHERE username = $1', [email]);
         if (userExists.rows.length > 0) {
             return res.status(409).json({ message: 'Este e-mail já está registado.' });
